@@ -2,7 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
+import { AuthProvider } from "@/contexts/auth-context"
 import { Toaster } from "@/components/ui/toaster"
 import Navbar from "@/components/navbar"
 
@@ -10,15 +10,7 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "SKConnect - Youth Development Portal",
-  description: "Empowering Filipino youth through community engagement and Sangguniang Kabataan initiatives",
-  keywords: ["SK", "youth", "Philippines", "community", "barangay", "development"],
-  authors: [{ name: "SKConnect Team" }],
-  openGraph: {
-    title: "SKConnect - Youth Development Portal",
-    description: "Empowering Filipino youth through community engagement",
-    type: "website",
-    locale: "en_PH",
-  },
+  description: "Empowering Filipino youth through community engagement and leadership development",
     generator: 'v0.dev'
 }
 
@@ -28,13 +20,15 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <Navbar />
-          <main>{children}</main>
+        <AuthProvider>
+          <div className="min-h-screen bg-gray-50">
+            <Navbar />
+            <main className="container mx-auto px-4 py-8">{children}</main>
+          </div>
           <Toaster />
-        </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   )

@@ -1,8 +1,8 @@
 "use client"
 
-import type React from "react"
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import axios from "axios"
+import { useToast } from "@/hooks/use-toast"
 
 interface User {
   id: string
@@ -44,10 +44,17 @@ interface AuthProviderProps {
   children: ReactNode
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
-  const [token, setToken] = useState<string | null>(localStorage.getItem("token"))
+  const [token, setToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
+
+  useEffect(() => {
+    // Get token from localStorage on client side
+    const storedToken = localStorage.getItem("token")
+    setToken(storedToken)
+  }, [])
 
   useEffect(() => {
     const initAuth = async () => {
@@ -77,8 +84,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setToken(newToken)
       setUser(userData)
       axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`
+
+      toast({
+        title: "Success",
+        description: "Login successful!",
+      })
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Login failed")
+      const message = error.response?.data?.message || "Login failed"
+      toast({
+        title: "Error",
+        description: message,
+        variant: "destructive",
+      })
+      throw new Error(message)
     }
   }
 
@@ -91,8 +109,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setToken(newToken)
       setUser(newUser)
       axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`
+
+      toast({
+        title: "Success",
+        description: "Registration successful! Welcome to SKConnect!",
+      })
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Registration failed")
+      const message = error.response?.data?.message || "Registration failed"
+      toast({
+        title: "Error",
+        description: message,
+        variant: "destructive",
+      })
+      throw new Error(message)
     }
   }
 
@@ -101,6 +130,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setToken(null)
     setUser(null)
     delete axios.defaults.headers.common["Authorization"]
+
+    toast({
+      title: "Success",
+      description: "Logged out successfully",
+    })
   }
 
   const value = {
