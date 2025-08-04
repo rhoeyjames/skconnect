@@ -59,7 +59,6 @@
     "express-validator": "latest",
     "fs": "latest",
     "helmet": "latest",
-    "http": "latest",
     "input-otp": "latest",
     "jsonwebtoken": "latest",
     "lucide-react": "^0.454.0",
