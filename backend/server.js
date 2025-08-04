@@ -2,12 +2,12 @@ const express = require("express")
 const mongoose = require("mongoose")
 const cors = require("cors")
 const dotenv = require("dotenv")
+const path = require("path")
 
 // Load environment variables
 dotenv.config()
 
 const app = express()
-const PORT = process.env.PORT || 5000
 
 // Middleware
 app.use(
@@ -18,6 +18,9 @@ app.use(
 )
 app.use(express.json({ limit: "10mb" }))
 app.use(express.urlencoded({ extended: true, limit: "10mb" }))
+
+// Serve static files
+app.use("/uploads", express.static(path.join(__dirname, "uploads")))
 
 // Routes
 app.use("/api/auth", require("./routes/auth"))
@@ -33,23 +36,22 @@ app.get("/api/health", (req, res) => {
     status: "OK",
     message: "SKConnect Backend is running",
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || "development",
   })
 })
 
 // Root endpoint
 app.get("/", (req, res) => {
   res.json({
-    message: "SKConnect Backend API",
+    message: "Welcome to SKConnect API",
     version: "1.0.0",
     endpoints: {
-      health: "/api/health",
       auth: "/api/auth",
       events: "/api/events",
       registrations: "/api/registrations",
       suggestions: "/api/suggestions",
       feedback: "/api/feedback",
       admin: "/api/admin",
+      health: "/api/health",
     },
   })
 })
@@ -76,26 +78,17 @@ mongoose
   })
   .then(() => {
     console.log("Connected to MongoDB")
-
-    // Start server
-    app.listen(PORT, "0.0.0.0", () => {
-      console.log(`Server running on port ${PORT}`)
-      console.log(`Environment: ${process.env.NODE_ENV || "development"}`)
-      console.log(`Frontend URL: ${process.env.FRONTEND_URL || "http://localhost:3000"}`)
-    })
   })
-  .catch((error) => {
-    console.error("MongoDB connection error:", error)
+  .catch((err) => {
+    console.error("MongoDB connection error:", err)
     process.exit(1)
   })
 
-// Graceful shutdown
-process.on("SIGTERM", () => {
-  console.log("SIGTERM received, shutting down gracefully")
-  mongoose.connection.close(() => {
-    console.log("MongoDB connection closed")
-    process.exit(0)
-  })
+const PORT = process.env.PORT || 5000
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+  console.log(`Environment: ${process.env.NODE_ENV || "development"}`)
 })
 
 module.exports = app
