@@ -1,210 +1,215 @@
-# SKConnect - Youth Development & Sangguniang Kabataan Portal
+# SKConnect Portal
 
-SKConnect is a comprehensive full-stack web application designed to facilitate youth development and community engagement through the Sangguniang Kabataan (SK) system.
+**SKConnect** is a comprehensive Youth Development & Sangguniang Kabataan (SK) Portal built with modern web technologies. It provides a platform for youth engagement, event management, project suggestions, and community feedback.
 
-## 🚀 Features
+## 🎯 Project Overview
 
-### For Youth (Users)
-- **Event Registration**: Browse and register for community events
-- **Project Suggestions**: Submit ideas for community projects
-- **Voting System**: Vote on project suggestions from other users
-- **Event Feedback**: Rate and provide feedback on attended events
-- **Personal Dashboard**: Track registered events and participation
+SKConnect bridges the gap between youth and local government by providing:
+- **Event Management** - Create and manage community events
+- **Online Registration** - Streamlined event registration process
+- **Project Suggestions** - Community-driven project ideas
+- **Voting System** - Democratic decision making
+- **Feedback Collection** - Event ratings and comments
+- **Admin Dashboard** - Comprehensive analytics and management
 
-### For SK Admins
-- **Event Management**: Create, update, and manage community events
-- **Registration Management**: Approve/reject event registrations
-- **Project Review**: Review and respond to project suggestions
-- **Analytics Dashboard**: View participation statistics and reports
-- **User Management**: Oversee registered users and their activities
+## 🏗️ Project Structure
 
-## 🛠️ Technology Stack
+\`\`\`
+skconnect/
+├── backend/                 # Node.js/Express API
+│   ├── models/             # MongoDB schemas
+│   ├── routes/             # API endpoints
+│   ├── middleware/         # Custom middleware
+│   ├── uploads/            # File storage
+│   └── server.js           # Main server file
+├── app/                    # Next.js frontend pages
+├── components/             # React components
+├── lib/                    # Utility functions
+└── public/                 # Static assets
+\`\`\`
+
+## 🚀 Tech Stack
 
 ### Backend
-- **Node.js** with **Express.js**
-- **MongoDB** with **Mongoose**
-- **JWT** for authentication
-- **Multer** for file uploads
-- **Express-validator** for input validation
-- **bcryptjs** for password hashing
+- **Node.js** - Runtime environment
+- **Express.js** - Web framework
+- **MongoDB** - Database
+- **JWT** - Authentication
+- **Multer** - File uploads
+- **bcryptjs** - Password hashing
 
 ### Frontend
-- **React** with **TypeScript**
-- **React Router** for navigation
-- **Axios** for API calls
-- **TailwindCSS** for styling
-- **React-Toastify** for notifications
-- **Recharts** for analytics visualization
+- **Next.js 14** - React framework
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Styling
+- **shadcn/ui** - UI components
+- **Recharts** - Data visualization
+- **React Hook Form** - Form handling
 
-## 📦 Installation & Setup
+## 👥 User Roles
+
+### Youth (Users)
+- Register and login
+- View and join events
+- Submit project suggestions
+- Vote on community projects
+- Provide event feedback
+- Track registration status
+
+### SK Admin
+- Full event management (CRUD)
+- Approve/reject registrations
+- Review project suggestions
+- View analytics dashboard
+- Export registration data
+- Manage user accounts
+
+## ✅ Core Features
+
+### 1. Event Management
+- Create events with images, dates, venues
+- Set participant limits
+- Track registrations
+- Event categorization (workshop, seminar, sports, etc.)
+
+### 2. Registration System
+- Online event registration
+- File upload (ID, waivers)
+- Status tracking (pending, approved, rejected)
+- Admin approval workflow
+
+### 3. Project Suggestions
+- Submit community project ideas
+- File attachments support
+- Admin review and comments
+- Status management
+
+### 4. Voting & Feedback
+- Vote on project suggestions
+- Rate events (1-5 stars)
+- Anonymous feedback option
+- Analytics and reporting
+
+### 5. Admin Dashboard
+- User statistics
+- Event analytics
+- Registration management
+- Export functionality
+
+## 🛠️ Setup Instructions
 
 ### Prerequisites
-- Node.js (v14 or higher)
-- MongoDB (local or cloud instance)
-- npm or yarn package manager
+- Node.js (v18 or higher)
+- MongoDB (local or cloud)
+- Git
 
-### Backend Setup
+### 1. Clone Repository
+\`\`\`bash
+git clone https://github.com/your-username/skconnect.git
+cd skconnect
+\`\`\`
 
-1. **Clone the repository**
-   \`\`\`bash
-   git clone <repository-url>
-   cd skconnect
-   \`\`\`
+### 2. Backend Setup
+\`\`\`bash
+# Install backend dependencies
+npm run backend:install
 
-2. **Install backend dependencies**
-   \`\`\`bash
-   npm install
-   \`\`\`
+# Configure environment
+cd backend
+cp .env.example .env
+# Edit .env with your MongoDB URI and JWT secret
 
-3. **Environment Configuration**
-   \`\`\`bash
-   cp .env.example .env
-   \`\`\`
-   
-   Update the `.env` file with your configuration:
-   \`\`\`env
-   PORT=5000
-   MONGODB_URI=mongodb://localhost:27017/skconnect
-   JWT_SECRET=your_super_secret_jwt_key_here
-   NODE_ENV=development
-   \`\`\`
+# Start backend server
+npm run backend
+\`\`\`
 
-4. **Start the backend server**
-   \`\`\`bash
-   # Development mode
-   npm run dev
-   
-   # Production mode
-   npm start
-   \`\`\`
+### 3. Frontend Setup
+\`\`\`bash
+# Install frontend dependencies (from root)
+npm install
 
-### Frontend Setup
+# Start frontend development server
+npm run dev
+\`\`\`
 
-1. **Navigate to frontend directory**
-   \`\`\`bash
-   cd frontend
-   \`\`\`
+### 4. Database Setup
+Make sure MongoDB is running and accessible via the connection string in your `.env` file.
 
-2. **Install frontend dependencies**
-   \`\`\`bash
-   # Using the specified create-react-app version for Termux compatibility
-   npx create-react-app@4.0.3 . --template typescript
-   
-   # Install additional dependencies
-   npm install axios react-router-dom react-toastify recharts
-   npm install -D tailwindcss postcss autoprefixer
-   \`\`\`
+## 📱 Mobile Responsive
 
-3. **Initialize TailwindCSS**
-   \`\`\`bash
-   npx tailwindcss init -p
-   \`\`\`
+SKConnect is built with a mobile-first approach:
+- Responsive navigation
+- Touch-friendly interfaces
+- Optimized for mobile devices
+- Works great in Termux environment
 
-4. **Start the frontend development server**
-   \`\`\`bash
-   npm start
-   \`\`\`
+## 🔐 Security Features
 
-The application will be available at:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:5000
+- **JWT Authentication** - Secure token-based authentication
+- **Password Hashing** - bcryptjs for secure password storage
+- **Input Validation** - Server-side validation with express-validator
+- **File Upload Security** - Type and size restrictions
+- **Role-based Access Control** - Protected admin routes
 
-## 📱 Mobile Compatibility
-
-SKConnect is built with a mobile-first approach using TailwindCSS, ensuring optimal performance on:
-- Mobile devices (phones and tablets)
-- Desktop browsers
-- Termux environment (Android)
-
-## 🗃️ Database Schema
+## 📊 Database Schema
 
 ### Collections
-
-1. **users** - User accounts and profiles
-2. **events** - Community events and activities
-3. **registrations** - Event registration records
-4. **suggestions** - Project suggestions from users
-5. **votes** - Voting records for suggestions
-6. **feedbacks** - Event feedback and ratings
-
-## 🔐 Authentication & Security
-
-- JWT-based authentication system
-- Password hashing with bcryptjs
-- Protected routes for authenticated users
-- Role-based access control (User/Admin)
-- File upload validation and security
-
-## 📊 Admin Features
-
-- **Dashboard Analytics**: User statistics, event popularity, barangay participation
-- **Event Management**: Full CRUD operations for events
-- **Registration Oversight**: Approve/reject registrations with notes
-- **Project Review System**: Manage community project suggestions
-- **Export Functionality**: Download registration lists as CSV files
-
-## 🎯 API Endpoints
-
-### Authentication
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `GET /api/auth/me` - Get current user
-
-### Events
-- `GET /api/events` - List all events
-- `GET /api/events/:id` - Get single event
-- `POST /api/events` - Create event (Admin)
-- `PUT /api/events/:id` - Update event (Admin)
-- `DELETE /api/events/:id` - Delete event (Admin)
-
-### Registrations
-- `POST /api/registrations` - Register for event
-- `GET /api/registrations/my-registrations` - User's registrations
-- `GET /api/registrations/event/:eventId` - Event registrations (Admin)
-- `PUT /api/registrations/:id/status` - Update registration status (Admin)
-
-### Suggestions
-- `POST /api/suggestions` - Create suggestion
-- `GET /api/suggestions` - List suggestions
-- `POST /api/suggestions/:id/vote` - Vote on suggestion
-- `PUT /api/suggestions/:id/status` - Update suggestion status (Admin)
-
-### Feedback
-- `POST /api/feedback` - Submit event feedback
-- `GET /api/feedback/event/:eventId` - Get event feedback
-- `GET /api/feedback/event/:eventId/stats` - Get feedback statistics
+- **users** - User accounts and profiles
+- **events** - Event information and details
+- **registrations** - Event registrations with status
+- **suggestions** - Community project suggestions
+- **votes** - User votes on suggestions
+- **feedbacks** - Event ratings and comments
 
 ## 🚀 Deployment
 
 ### Backend Deployment
-1. Set environment variables on your hosting platform
-2. Ensure MongoDB connection is configured
-3. Deploy using your preferred platform (Vercel, Heroku, etc.)
+1. Set production environment variables
+2. Configure MongoDB connection
+3. Deploy to your preferred platform (Heroku, Railway, etc.)
 
 ### Frontend Deployment
-1. Build the React application: `npm run build`
-2. Deploy the build folder to your hosting platform
-3. Configure API base URL for production
+1. Build the Next.js application
+2. Deploy to Vercel, Netlify, or similar platform
+3. Configure API endpoints
+
+## 📝 API Documentation
+
+The backend provides RESTful APIs for:
+- Authentication (`/api/auth`)
+- Events (`/api/events`)
+- Registrations (`/api/registrations`)
+- Suggestions (`/api/suggestions`)
+- Feedback (`/api/feedback`)
+- Admin (`/api/admin`)
+
+See `backend/README.md` for detailed API documentation.
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Commit your changes: `git commit -m 'Add feature'`
-4. Push to the branch: `git push origin feature-name`
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 👥 Support
+## 🙏 Acknowledgments
+
+- Built for the Filipino youth and SK communities
+- Inspired by the need for better youth engagement platforms
+- Thanks to all contributors and supporters
+
+## 📞 Support
 
 For support and questions:
-- Create an issue in the repository
+- Create an issue on GitHub
 - Contact the development team
-- Check the documentation for common solutions
+- Check the documentation
 
 ---
 
-**SKConnect** - Empowering youth, building communities! 🌟
+**SKConnect** - Empowering Youth, Building Communities 🇵🇭
