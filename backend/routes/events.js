@@ -1,53 +1,28 @@
 const express = require("express")
+const { body, validationResult } = require("express-validator")
 const Event = require("../models/Event")
 const Registration = require("../models/Registration")
-const { auth, skOfficialAuth } = require("../middleware/auth")
-const { upload, handleMulterError } = require("../middleware/upload")
-const User = require("../models/User") // Import User model
+const auth = require("../middleware/auth")
+const upload = require("../middleware/upload")
 
 const router = express.Router()
 
-// Get all events with filtering and pagination
+// Get all events
 router.get("/", async (req, res) => {
   try {
-    const {
-      page = 1,
-      limit = 10,
-      category,
-      barangay,
-      municipality,
-      province,
-      status = "upcoming",
-      search,
-      sortBy = "date",
-      sortOrder = "asc",
-    } = req.query
+    const { category, status, page = 1, limit = 10 } = req.query
+    const query = { isPublic: true }
 
-    // Build filter object
-    const filter = {}
-    if (category) filter.category = category
-    if (barangay) filter.barangay = new RegExp(barangay, "i")
-    if (municipality) filter.municipality = new RegExp(municipality, "i")
-    if (province) filter.province = new RegExp(province, "i")
-    if (status) filter.status = status
+    if (category) query.category = category
+    if (status) query.status = status
 
-    // Add search functionality
-    if (search) {
-      filter.$text = { $search: search }
-    }
-
-    // Build sort object
-    const sort = {}
-    sort[sortBy] = sortOrder === "desc" ? -1 : 1
-
-    const events = await Event.find(filter)
-      .populate("organizer", "firstName lastName email role")
-      .sort(sort)
+    const events = await Event.find(query)
+      .populate("organizer", "firstName lastName")
+      .sort({ date: 1 })
       .limit(limit * 1)
       .skip((page - 1) * limit)
-      .exec()
 
-    const total = await Event.countDocuments(filter)
+    const total = await Event.countDocuments(query)
 
     res.json({
       events,
@@ -57,76 +32,70 @@ router.get("/", async (req, res) => {
     })
   } catch (error) {
     console.error("Get events error:", error)
-    res.status(500).json({
-      message: "Failed to fetch events",
-      error: error.message,
-    })
+    res.status(500).json({ message: "Server error" })
   }
 })
 
 // Get single event
 router.get("/:id", async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id).populate(
-      "organizer",
-      "firstName lastName email role profilePicture",
-    )
+    const event = await Event.findById(req.params.id).populate("organizer", "firstName lastName email")
 
     if (!event) {
       return res.status(404).json({ message: "Event not found" })
     }
 
-    res.json({ event })
+    res.json(event)
   } catch (error) {
     console.error("Get event error:", error)
-    res.status(500).json({
-      message: "Failed to fetch event",
-      error: error.message,
-    })
+    res.status(500).json({ message: "Server error" })
   }
 })
 
-// Create event (admin only)
-router.post("/", auth, skOfficialAuth, upload.single("eventImage"), handleMulterError, async (req, res) => {
-  try {
-    const eventData = {
-      ...req.body,
-      organizer: req.user.userId,
+// Create event (protected)
+router.post(
+  "/",
+  auth,
+  [
+    body("title").trim().notEmpty().withMessage("Title is required"),
+    body("description").trim().notEmpty().withMessage("Description is required"),
+    body("date").isISO8601().withMessage("Valid date is required"),
+    body("time").notEmpty().withMessage("Time is required"),
+    body("location").trim().notEmpty().withMessage("Location is required"),
+    body("category")
+      .isIn(["sports", "education", "community", "health", "environment", "culture", "other"])
+      .withMessage("Valid category is required"),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req)
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() })
+      }
+
+      const eventData = {
+        ...req.body,
+        organizer: req.userId,
+      }
+
+      const event = new Event(eventData)
+      await event.save()
+
+      const populatedEvent = await Event.findById(event._id).populate("organizer", "firstName lastName")
+
+      res.status(201).json({
+        message: "Event created successfully",
+        event: populatedEvent,
+      })
+    } catch (error) {
+      console.error("Create event error:", error)
+      res.status(500).json({ message: "Server error" })
     }
+  },
+)
 
-    // Add image path if uploaded
-    if (req.file) {
-      eventData.image = `/uploads/events/${req.file.filename}`
-    }
-
-    // Parse arrays if they come as strings
-    if (typeof eventData.requirements === "string") {
-      eventData.requirements = JSON.parse(eventData.requirements)
-    }
-    if (typeof eventData.tags === "string") {
-      eventData.tags = JSON.parse(eventData.tags)
-    }
-
-    const event = new Event(eventData)
-    await event.save()
-
-    const populatedEvent = await Event.findById(event._id).populate("organizer", "firstName lastName email role")
-
-    res.status(201).json({
-      message: "Event created successfully",
-      event: populatedEvent,
-    })
-  } catch (error) {
-    console.error("Create event error:", error)
-    res.status(400).json({
-      message: "Failed to create event",
-      error: error.message,
-    })
-  }
-})
-
-// Update event
-router.put("/:id", auth, skOfficialAuth, upload.single("eventImage"), handleMulterError, async (req, res) => {
+// Update event (protected)
+router.put("/:id", auth, async (req, res) => {
   try {
     const event = await Event.findById(req.params.id)
 
@@ -134,31 +103,15 @@ router.put("/:id", auth, skOfficialAuth, upload.single("eventImage"), handleMult
       return res.status(404).json({ message: "Event not found" })
     }
 
-    // Check if user is organizer or admin
-    const user = await User.findById(req.user.userId)
-    if (event.organizer.toString() !== req.user.userId && user.role !== "admin") {
+    // Check if user is the organizer or admin
+    if (event.organizer.toString() !== req.userId && req.user.role !== "admin") {
       return res.status(403).json({ message: "Not authorized to update this event" })
     }
 
-    const updateData = { ...req.body }
-
-    // Add image path if uploaded
-    if (req.file) {
-      updateData.image = `/uploads/events/${req.file.filename}`
-    }
-
-    // Parse arrays if they come as strings
-    if (typeof updateData.requirements === "string") {
-      updateData.requirements = JSON.parse(updateData.requirements)
-    }
-    if (typeof updateData.tags === "string") {
-      updateData.tags = JSON.parse(updateData.tags)
-    }
-
-    const updatedEvent = await Event.findByIdAndUpdate(req.params.id, updateData, {
+    const updatedEvent = await Event.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
-    }).populate("organizer", "firstName lastName email role")
+    }).populate("organizer", "firstName lastName")
 
     res.json({
       message: "Event updated successfully",
@@ -166,15 +119,12 @@ router.put("/:id", auth, skOfficialAuth, upload.single("eventImage"), handleMult
     })
   } catch (error) {
     console.error("Update event error:", error)
-    res.status(400).json({
-      message: "Failed to update event",
-      error: error.message,
-    })
+    res.status(500).json({ message: "Server error" })
   }
 })
 
-// Delete event
-router.delete("/:id", auth, skOfficialAuth, async (req, res) => {
+// Delete event (protected)
+router.delete("/:id", auth, async (req, res) => {
   try {
     const event = await Event.findById(req.params.id)
 
@@ -182,78 +132,18 @@ router.delete("/:id", auth, skOfficialAuth, async (req, res) => {
       return res.status(404).json({ message: "Event not found" })
     }
 
-    // Check if user is organizer or admin
-    const user = await User.findById(req.user.userId)
-    if (event.organizer.toString() !== req.user.userId && user.role !== "admin") {
+    // Check if user is the organizer or admin
+    if (event.organizer.toString() !== req.userId && req.user.role !== "admin") {
       return res.status(403).json({ message: "Not authorized to delete this event" })
     }
 
-    // Check if event has registrations
-    const registrationCount = await Registration.countDocuments({ event: req.params.id })
-    if (registrationCount > 0) {
-      return res.status(400).json({
-        message: "Cannot delete event with existing registrations. Cancel the event instead.",
-      })
-    }
-
     await Event.findByIdAndDelete(req.params.id)
+    await Registration.deleteMany({ event: req.params.id })
 
     res.json({ message: "Event deleted successfully" })
   } catch (error) {
     console.error("Delete event error:", error)
-    res.status(500).json({
-      message: "Failed to delete event",
-      error: error.message,
-    })
-  }
-})
-
-// Get events by organizer
-router.get("/organizer/:organizerId", async (req, res) => {
-  try {
-    const events = await Event.find({ organizer: req.params.organizerId })
-      .populate("organizer", "firstName lastName email role")
-      .sort({ createdAt: -1 })
-
-    res.json({ events })
-  } catch (error) {
-    console.error("Get organizer events error:", error)
-    res.status(500).json({
-      message: "Failed to fetch organizer events",
-      error: error.message,
-    })
-  }
-})
-
-// Get event statistics
-router.get("/:id/stats", auth, async (req, res) => {
-  try {
-    const event = await Event.findById(req.params.id)
-
-    if (!event) {
-      return res.status(404).json({ message: "Event not found" })
-    }
-
-    const registrations = await Registration.find({ event: req.params.id })
-
-    const stats = {
-      totalRegistrations: registrations.length,
-      confirmedRegistrations: registrations.filter((r) => r.status === "confirmed").length,
-      pendingRegistrations: registrations.filter((r) => r.status === "pending").length,
-      cancelledRegistrations: registrations.filter((r) => r.status === "cancelled").length,
-      attendedCount: registrations.filter((r) => r.status === "attended").length,
-      noShowCount: registrations.filter((r) => r.status === "no_show").length,
-      spotsRemaining: event.maxParticipants - event.currentParticipants,
-      registrationRate: event.maxParticipants > 0 ? (event.currentParticipants / event.maxParticipants) * 100 : 0,
-    }
-
-    res.json({ stats })
-  } catch (error) {
-    console.error("Get event stats error:", error)
-    res.status(500).json({
-      message: "Failed to fetch event statistics",
-      error: error.message,
-    })
+    res.status(500).json({ message: "Server error" })
   }
 })
 

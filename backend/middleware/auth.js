@@ -6,40 +6,23 @@ const auth = async (req, res, next) => {
     const token = req.header("Authorization")?.replace("Bearer ", "")
 
     if (!token) {
-      return res.status(401).json({ message: "Access denied. No token provided." })
+      return res.status(401).json({ message: "No token, authorization denied" })
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
 
-    // Check if user still exists and is active
-    const user = await User.findById(decoded.userId).select("-password")
+    const user = await User.findById(decoded.userId)
     if (!user || !user.isActive) {
-      return res.status(401).json({ message: "Invalid token or user deactivated." })
+      return res.status(401).json({ message: "Token is not valid" })
     }
 
-    req.user = decoded
-    req.userDoc = user
+    req.userId = decoded.userId
+    req.user = user
     next()
   } catch (error) {
     console.error("Auth middleware error:", error)
-    res.status(401).json({ message: "Invalid token." })
+    res.status(401).json({ message: "Token is not valid" })
   }
 }
 
-// Admin authorization middleware
-const adminAuth = (req, res, next) => {
-  if (req.user.role !== "admin") {
-    return res.status(403).json({ message: "Access denied. Admin privileges required." })
-  }
-  next()
-}
-
-// SK Official authorization middleware
-const skOfficialAuth = (req, res, next) => {
-  if (req.user.role !== "sk_official" && req.user.role !== "admin") {
-    return res.status(403).json({ message: "Access denied. SK Official privileges required." })
-  }
-  next()
-}
-
-module.exports = { auth, adminAuth, skOfficialAuth }
+module.exports = auth
