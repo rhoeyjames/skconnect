@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
-import axios from "axios"
+import { api } from "@/lib/api" // Use the configured API instance
 import { useToast } from "@/hooks/use-toast"
 
 interface User {
@@ -60,13 +60,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const initAuth = async () => {
       if (token) {
         try {
-          axios.defaults.headers.common["Authorization"] = `Bearer ${token}`
-          const response = await axios.get("/api/auth/me")
+          api.defaults.headers.common["Authorization"] = `Bearer ${token}`
+          const response = await api.get("/auth/me")
           setUser(response.data.user)
         } catch (error) {
           localStorage.removeItem("token")
           setToken(null)
-          delete axios.defaults.headers.common["Authorization"]
+          delete api.defaults.headers.common["Authorization"]
         }
       }
       setLoading(false)
@@ -77,13 +77,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await axios.post("/api/auth/login", { email, password })
+      const response = await api.post("/auth/login", { email, password })
       const { token: newToken, user: userData } = response.data
 
       localStorage.setItem("token", newToken)
       setToken(newToken)
       setUser(userData)
-      axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`
+      api.defaults.headers.common["Authorization"] = `Bearer ${newToken}`
 
       toast({
         title: "Success",
@@ -102,13 +102,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const register = async (userData: RegisterData) => {
     try {
-      const response = await axios.post("/api/auth/register", userData)
+      const response = await api.post("/auth/register", userData)
       const { token: newToken, user: newUser } = response.data
 
       localStorage.setItem("token", newToken)
       setToken(newToken)
       setUser(newUser)
-      axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`
+      api.defaults.headers.common["Authorization"] = `Bearer ${newToken}`
 
       toast({
         title: "Success",
@@ -129,7 +129,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     localStorage.removeItem("token")
     setToken(null)
     setUser(null)
-    delete axios.defaults.headers.common["Authorization"]
+    delete api.defaults.headers.common["Authorization"]
 
     toast({
       title: "Success",
