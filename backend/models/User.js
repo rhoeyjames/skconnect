@@ -3,52 +3,71 @@ const bcrypt = require("bcryptjs")
 
 const userSchema = new mongoose.Schema(
   {
-    name: {
+    firstName: {
       type: String,
-      required: [true, "Name is required"],
+      required: true,
       trim: true,
-      maxlength: [100, "Name cannot exceed 100 characters"],
+    },
+    lastName: {
+      type: String,
+      required: true,
+      trim: true,
     },
     email: {
       type: String,
-      required: [true, "Email is required"],
+      required: true,
       unique: true,
       lowercase: true,
-      match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, "Please enter a valid email"],
+      trim: true,
     },
     password: {
       type: String,
-      required: [true, "Password is required"],
-      minlength: [6, "Password must be at least 6 characters"],
+      required: true,
+      minlength: 6,
     },
     age: {
       type: Number,
-      required: [true, "Age is required"],
-      min: [13, "Must be at least 13 years old"],
-      max: [30, "Must be 30 years old or younger"],
+      required: true,
+      min: 15,
+      max: 30,
     },
     barangay: {
       type: String,
-      required: [true, "Barangay is required"],
+      required: true,
       trim: true,
     },
     role: {
       type: String,
-      enum: ["user", "admin"],
-      default: "user",
+      enum: ["youth", "sk_official", "admin"],
+      default: "youth",
     },
     isActive: {
       type: Boolean,
       default: true,
     },
-    profileImage: {
+    profilePicture: {
       type: String,
       default: null,
     },
-    joinedAt: {
-      type: Date,
-      default: Date.now,
+    phoneNumber: {
+      type: String,
+      trim: true,
     },
+    dateOfBirth: {
+      type: Date,
+    },
+    interests: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+    skills: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
   },
   {
     timestamps: true,
@@ -60,7 +79,7 @@ userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next()
 
   try {
-    const salt = await bcrypt.genSalt(12)
+    const salt = await bcrypt.genSalt(10)
     this.password = await bcrypt.hash(this.password, salt)
     next()
   } catch (error) {
@@ -70,7 +89,7 @@ userSchema.pre("save", async function (next) {
 
 // Compare password method
 userSchema.methods.comparePassword = async function (candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password)
+  return bcrypt.compare(candidatePassword, this.password)
 }
 
 // Remove password from JSON output

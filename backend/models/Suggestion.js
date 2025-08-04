@@ -4,67 +4,70 @@ const suggestionSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: [true, "Suggestion title is required"],
+      required: true,
       trim: true,
-      maxlength: [200, "Title cannot exceed 200 characters"],
     },
     description: {
       type: String,
-      required: [true, "Suggestion description is required"],
-      maxlength: [2000, "Description cannot exceed 2000 characters"],
+      required: true,
     },
     category: {
       type: String,
-      enum: ["infrastructure", "education", "health", "environment", "sports", "culture", "technology", "other"],
-      default: "other",
+      enum: ["event", "program", "facility", "policy", "other"],
+      required: true,
     },
-    targetBeneficiaries: {
-      type: String,
-      maxlength: [500, "Target beneficiaries cannot exceed 500 characters"],
-    },
-    estimatedBudget: {
-      type: Number,
-      min: [0, "Budget cannot be negative"],
-    },
-    timeline: {
-      type: String,
-      maxlength: [200, "Timeline cannot exceed 200 characters"],
-    },
-    attachments: [
-      {
-        filename: String,
-        originalName: String,
-        mimetype: String,
-        size: Number,
-        uploadDate: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
-    createdBy: {
+    author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
     status: {
       type: String,
-      enum: ["pending", "under-review", "approved", "rejected", "implemented"],
+      enum: ["pending", "under_review", "approved", "rejected", "implemented"],
       default: "pending",
     },
-    adminComments: [
+    priority: {
+      type: String,
+      enum: ["low", "medium", "high", "urgent"],
+      default: "medium",
+    },
+    votes: {
+      upvotes: {
+        type: Number,
+        default: 0,
+      },
+      downvotes: {
+        type: Number,
+        default: 0,
+      },
+    },
+    comments: [
       {
-        comment: {
-          type: String,
-          required: true,
-          maxlength: [1000, "Comment cannot exceed 1000 characters"],
-        },
-        commentedBy: {
+        user: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
+        },
+        text: {
+          type: String,
           required: true,
         },
-        commentedAt: {
+        date: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    tags: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+    attachments: [
+      {
+        filename: String,
+        url: String,
+        uploadDate: {
           type: Date,
           default: Date.now,
         },
@@ -74,19 +77,12 @@ const suggestionSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    reviewedAt: {
+    reviewDate: {
       type: Date,
     },
-    implementationDate: {
-      type: Date,
+    reviewNotes: {
+      type: String,
     },
-    tags: [
-      {
-        type: String,
-        trim: true,
-        lowercase: true,
-      },
-    ],
   },
   {
     timestamps: true,
@@ -94,20 +90,8 @@ const suggestionSchema = new mongoose.Schema(
 )
 
 // Index for better query performance
-suggestionSchema.index({ status: 1 })
-suggestionSchema.index({ createdBy: 1 })
+suggestionSchema.index({ status: 1, createdAt: -1 })
 suggestionSchema.index({ category: 1 })
-
-// Virtual for vote count
-suggestionSchema.virtual("voteCount", {
-  ref: "Vote",
-  localField: "_id",
-  foreignField: "suggestionId",
-  count: true,
-})
-
-// Ensure virtual fields are serialized
-suggestionSchema.set("toJSON", { virtuals: true })
-suggestionSchema.set("toObject", { virtuals: true })
+suggestionSchema.index({ author: 1 })
 
 module.exports = mongoose.model("Suggestion", suggestionSchema)

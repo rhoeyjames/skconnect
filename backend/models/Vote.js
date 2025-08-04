@@ -2,12 +2,12 @@ const mongoose = require("mongoose")
 
 const voteSchema = new mongoose.Schema(
   {
-    suggestionId: {
+    suggestion: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Suggestion",
       required: true,
     },
-    userId: {
+    user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
@@ -15,7 +15,7 @@ const voteSchema = new mongoose.Schema(
     voteType: {
       type: String,
       enum: ["upvote", "downvote"],
-      default: "upvote",
+      required: true,
     },
   },
   {
@@ -24,6 +24,6 @@ const voteSchema = new mongoose.Schema(
 )
 
 // Compound index to prevent duplicate votes
-voteSchema.index({ suggestionId: 1, userId: 1 }, { unique: true })
+voteSchema.index({ suggestion: 1, user: 1 }, { unique: true })
 
 module.exports = mongoose.model("Vote", voteSchema)

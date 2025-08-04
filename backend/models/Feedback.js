@@ -2,29 +2,25 @@ const mongoose = require("mongoose")
 
 const feedbackSchema = new mongoose.Schema(
   {
-    eventId: {
+    event: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Event",
       required: true,
     },
-    userId: {
+    user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
     rating: {
       type: Number,
-      required: [true, "Rating is required"],
-      min: [1, "Rating must be at least 1"],
-      max: [5, "Rating cannot exceed 5"],
+      required: true,
+      min: 1,
+      max: 5,
     },
     comment: {
       type: String,
-      maxlength: [1000, "Comment cannot exceed 1000 characters"],
-    },
-    anonymous: {
-      type: Boolean,
-      default: false,
+      trim: true,
     },
     categories: {
       organization: {
@@ -50,7 +46,7 @@ const feedbackSchema = new mongoose.Schema(
     },
     suggestions: {
       type: String,
-      maxlength: [500, "Suggestions cannot exceed 500 characters"],
+      trim: true,
     },
     wouldRecommend: {
       type: Boolean,
@@ -63,10 +59,6 @@ const feedbackSchema = new mongoose.Schema(
 )
 
 // Compound index to prevent duplicate feedback
-feedbackSchema.index({ eventId: 1, userId: 1 }, { unique: true })
-
-// Index for better query performance
-feedbackSchema.index({ eventId: 1 })
-feedbackSchema.index({ rating: 1 })
+feedbackSchema.index({ event: 1, user: 1 }, { unique: true })
 
 module.exports = mongoose.model("Feedback", feedbackSchema)

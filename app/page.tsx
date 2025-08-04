@@ -1,241 +1,270 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import axios from "axios"
-import { useAuth } from "@/contexts/auth-context"
-import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, MapPin, Clock, Users, Lightbulb, MessageSquare } from "lucide-react"
+import { Calendar, Users, Vote, MessageSquare, TrendingUp, MapPin } from "lucide-react"
+import Link from "next/link"
+import Image from "next/image"
 
-interface Event {
-  _id: string
-  title: string
-  description: string
-  date: string
-  time: string
-  type: string
-  venue: string
-  image?: string
-  registrationCount?: number
-}
+export default function HomePage() {
+  const upcomingEvents = [
+    {
+      id: 1,
+      title: "Youth Leadership Workshop",
+      date: "2024-02-15",
+      time: "9:00 AM",
+      venue: "Barangay Hall",
+      type: "workshop",
+      participants: 45,
+      maxParticipants: 50,
+      image: "/placeholder.svg?height=200&width=300&text=Leadership+Workshop",
+    },
+    {
+      id: 2,
+      title: "Community Clean-up Drive",
+      date: "2024-02-20",
+      time: "6:00 AM",
+      venue: "Riverside Park",
+      type: "community-service",
+      participants: 32,
+      maxParticipants: 100,
+      image: "/placeholder.svg?height=200&width=300&text=Clean-up+Drive",
+    },
+    {
+      id: 3,
+      title: "Basketball Tournament",
+      date: "2024-02-25",
+      time: "2:00 PM",
+      venue: "Municipal Court",
+      type: "sports",
+      participants: 28,
+      maxParticipants: 40,
+      image: "/placeholder.svg?height=200&width=300&text=Basketball+Tournament",
+    },
+  ]
 
-export default function Home() {
-  const { user } = useAuth()
-  const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([])
-  const [loading, setLoading] = useState(true)
-  const [stats, setStats] = useState({
-    totalEvents: 0,
-    totalUsers: 0,
-    totalSuggestions: 0,
-  })
+  const stats = [
+    { label: "Active Youth", value: "1,234", icon: Users, color: "text-blue-600" },
+    { label: "Events This Month", value: "12", icon: Calendar, color: "text-green-600" },
+    { label: "Project Ideas", value: "89", icon: Vote, color: "text-purple-600" },
+    { label: "Feedback Received", value: "456", icon: MessageSquare, color: "text-orange-600" },
+  ]
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [eventsResponse, statsResponse] = await Promise.all([
-          axios.get("/api/events?upcoming=true&limit=3"),
-          axios.get("/api/admin/stats").catch(() => ({ data: { totalEvents: 0, totalUsers: 0, totalSuggestions: 0 } })),
-        ])
-
-        setUpcomingEvents(eventsResponse.data.slice(0, 3))
-        setStats(statsResponse.data)
-      } catch (error) {
-        console.error("Error fetching data:", error)
-      } finally {
-        setLoading(false)
-      }
+  const getEventTypeColor = (type: string) => {
+    const colors = {
+      workshop: "bg-blue-100 text-blue-800",
+      "community-service": "bg-green-100 text-green-800",
+      sports: "bg-orange-100 text-orange-800",
+      seminar: "bg-purple-100 text-purple-800",
+      cultural: "bg-pink-100 text-pink-800",
+      meeting: "bg-gray-100 text-gray-800",
     }
-
-    fetchData()
-  }, [])
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    })
+    return colors[type as keyof typeof colors] || "bg-gray-100 text-gray-800"
   }
 
   return (
-    <div className="space-y-12">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-2xl p-8 md:p-12">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">Welcome to SKConnect</h1>
-          <p className="text-xl md:text-2xl mb-8 opacity-90">
-            Your gateway to youth development and community engagement
+      <section className="relative py-20 px-4 text-center">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8">
+            <Image src="/placeholder-logo.svg" alt="SKConnect Logo" width={120} height={120} className="mx-auto mb-6" />
+          </div>
+          <h1 className="text-5xl font-bold text-gray-900 mb-6">
+            Welcome to <span className="text-blue-600">SKConnect</span>
+          </h1>
+          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            Empowering Filipino youth through community engagement, leadership development, and collaborative project
+            initiatives. Join your local Sangguniang Kabataan today!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
-              <Link href="/events">
-                <Calendar className="mr-2 h-5 w-5" />
-                Browse Events
-              </Link>
+            <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
+              <Link href="/auth/register">Join as Youth Member</Link>
             </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="border-white text-white hover:bg-white hover:text-blue-600 bg-transparent"
-            >
-              <Link href="/suggestions/create">
-                <Lightbulb className="mr-2 h-5 w-5" />
-                Suggest a Project
-              </Link>
+            <Button asChild variant="outline" size="lg">
+              <Link href="/events">Browse Events</Link>
             </Button>
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="grid md:grid-cols-3 gap-6">
-        <Card>
-          <CardContent className="flex items-center p-6">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
-              <Calendar className="h-6 w-6 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.totalEvents}</p>
-              <p className="text-gray-600">Total Events</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="flex items-center p-6">
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
-              <Users className="h-6 w-6 text-green-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.totalUsers}</p>
-              <p className="text-gray-600">Registered Youth</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="flex items-center p-6">
-            <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mr-4">
-              <Lightbulb className="h-6 w-6 text-yellow-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.totalSuggestions}</p>
-              <p className="text-gray-600">Project Ideas</p>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
-
-      {/* Features Section */}
-      <section className="grid md:grid-cols-3 gap-8">
-        <Card className="text-center">
-          <CardContent className="p-6">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Calendar className="w-8 h-8 text-blue-600" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Event Management</h3>
-            <p className="text-gray-600">Discover and register for youth development events in your community</p>
-          </CardContent>
-        </Card>
-
-        <Card className="text-center">
-          <CardContent className="p-6">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Lightbulb className="w-8 h-8 text-green-600" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Project Suggestions</h3>
-            <p className="text-gray-600">Share your ideas for community projects and vote on others' suggestions</p>
-          </CardContent>
-        </Card>
-
-        <Card className="text-center">
-          <CardContent className="p-6">
-            <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <MessageSquare className="w-8 h-8 text-yellow-600" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Feedback System</h3>
-            <p className="text-gray-600">Rate events and provide feedback to help improve future activities</p>
-          </CardContent>
-        </Card>
+      <section className="py-16 px-4 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12">Community Impact</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {stats.map((stat, index) => (
+              <Card key={index} className="text-center">
+                <CardContent className="pt-6">
+                  <stat.icon className={`w-12 h-12 mx-auto mb-4 ${stat.color}`} />
+                  <div className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</div>
+                  <div className="text-gray-600">{stat.label}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* Upcoming Events */}
-      <section>
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">Upcoming Events</h2>
-          <Button asChild variant="outline">
-            <Link href="/events">View All Events →</Link>
-          </Button>
-        </div>
-
-        {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <section className="py-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex justify-between items-center mb-12">
+            <h2 className="text-3xl font-bold">Upcoming Events</h2>
+            <Button asChild variant="outline">
+              <Link href="/events">View All Events</Link>
+            </Button>
           </div>
-        ) : upcomingEvents.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {upcomingEvents.map((event) => (
-              <Card key={event._id} className="hover:shadow-lg transition-shadow">
-                {event.image && (
-                  <div className="aspect-video relative overflow-hidden rounded-t-lg">
-                    <img src={`/api/uploads/${event.image}`} alt={event.title} className="w-full h-full object-cover" />
-                  </div>
-                )}
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge variant="secondary">{event.type.replace("-", " ").toUpperCase()}</Badge>
-                    <span className="text-sm text-gray-500">{formatDate(event.date)}</span>
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">{event.title}</h3>
-                  <p className="text-gray-600 mb-4 line-clamp-2">{event.description}</p>
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center text-sm text-gray-500">
-                      <MapPin className="h-4 w-4 mr-2" />
+              <Card key={event.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                <div className="relative h-48">
+                  <Image src={event.image || "/placeholder.svg"} alt={event.title} fill className="object-cover" />
+                  <Badge className={`absolute top-3 left-3 ${getEventTypeColor(event.type)}`}>
+                    {event.type.replace("-", " ")}
+                  </Badge>
+                </div>
+                <CardHeader>
+                  <CardTitle className="text-lg">{event.title}</CardTitle>
+                  <CardDescription>
+                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                      <Calendar className="w-4 h-4" />
+                      {new Date(event.date).toLocaleDateString()} at {event.time}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <MapPin className="w-4 h-4" />
                       {event.venue}
                     </div>
-                    <div className="flex items-center text-sm text-gray-500">
-                      <Clock className="h-4 w-4 mr-2" />
-                      {event.time}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-between items-center mb-4">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Users className="w-4 h-4" />
+                      {event.participants}/{event.maxParticipants} registered
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {Math.round((event.participants / event.maxParticipants) * 100)}% full
                     </div>
                   </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full"
+                      style={{ width: `${(event.participants / event.maxParticipants) * 100}%` }}
+                    ></div>
+                  </div>
                   <Button asChild className="w-full">
-                    <Link href={`/events/${event._id}`}>View Details</Link>
+                    <Link href={`/events/${event.id}`}>View Details & Register</Link>
                   </Button>
                 </CardContent>
               </Card>
             ))}
           </div>
-        ) : (
-          <Card>
-            <CardContent className="text-center py-12">
-              <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg mb-4">No upcoming events at the moment.</p>
-              {user?.role === "admin" && (
-                <Button asChild>
-                  <Link href="/admin">Create Event</Link>
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        )}
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-16 px-4 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12">Platform Features</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <Card className="text-center">
+              <CardHeader>
+                <Calendar className="w-12 h-12 mx-auto mb-4 text-blue-600" />
+                <CardTitle>Event Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  Discover and register for community events, workshops, and activities organized by your local SK.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center">
+              <CardHeader>
+                <Vote className="w-12 h-12 mx-auto mb-4 text-green-600" />
+                <CardTitle>Project Suggestions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  Submit your ideas for community projects and vote on proposals from fellow youth members.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center">
+              <CardHeader>
+                <MessageSquare className="w-12 h-12 mx-auto mb-4 text-purple-600" />
+                <CardTitle>Feedback System</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  Share your thoughts and rate events to help improve future community activities and programs.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center">
+              <CardHeader>
+                <Users className="w-12 h-12 mx-auto mb-4 text-orange-600" />
+                <CardTitle>Youth Network</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  Connect with other youth in your barangay and collaborate on community development initiatives.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center">
+              <CardHeader>
+                <TrendingUp className="w-12 h-12 mx-auto mb-4 text-red-600" />
+                <CardTitle>Progress Tracking</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  Monitor your participation, track event attendance, and see the impact of your community involvement.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center">
+              <CardHeader>
+                <MapPin className="w-12 h-12 mx-auto mb-4 text-indigo-600" />
+                <CardTitle>Local Focus</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  Stay connected with your barangay's activities and contribute to local development and governance.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </section>
 
       {/* Call to Action */}
-      {!user && (
-        <section className="bg-gray-100 rounded-2xl p-8 text-center">
-          <h2 className="text-2xl font-bold mb-4">Join the SKConnect Community</h2>
-          <p className="text-gray-600 mb-6">
-            Register now to participate in events, share project ideas, and connect with fellow youth in your community.
+      <section className="py-16 px-4 bg-blue-600 text-white">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl font-bold mb-6">Ready to Make a Difference?</h2>
+          <p className="text-xl mb-8 opacity-90">
+            Join thousands of Filipino youth who are actively participating in their communities through SKConnect. Your
+            voice matters, your ideas count.
           </p>
-          <Button asChild size="lg">
-            <Link href="/register">Get Started Today</Link>
-          </Button>
-        </section>
-      )}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild size="lg" variant="secondary">
+              <Link href="/auth/register">Get Started Today</Link>
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="text-white border-white hover:bg-white hover:text-blue-600 bg-transparent"
+            >
+              <Link href="/about">Learn More</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }

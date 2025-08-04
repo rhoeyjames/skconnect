@@ -228,7 +228,7 @@ MIT License - see LICENSE file for details.
 
 Now let's update the main package.json to focus on the frontend and update the README:
 
-```typescriptreact file="package.json"
+\`\`\`typescriptreact file="package.json"
 [v0-no-op-code-block-prefix]{
   "name": "skconnect-frontend",
   "version": "0.1.0",

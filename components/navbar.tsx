@@ -2,167 +2,225 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useAuth } from "@/contexts/auth-context"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Menu, X, User, LogOut, Settings, Calendar, Lightbulb } from "lucide-react"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Menu, User, Calendar, Vote, MessageSquare, BarChart3 } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export default function Navbar() {
-  const { user, logout } = useAuth()
-  const router = useRouter()
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
 
-  const handleLogout = () => {
-    logout()
-    router.push("/")
-    setIsMenuOpen(false)
-  }
+  // Mock user state - replace with actual auth context
+  const user = null // { name: "Juan Dela Cruz", role: "user", avatar: "/placeholder-user.jpg" }
+
+  const navigationItems = [
+    { name: "Home", href: "/", icon: null },
+    { name: "Events", href: "/events", icon: Calendar },
+    { name: "Suggestions", href: "/suggestions", icon: Vote },
+    { name: "Feedback", href: "/feedback", icon: MessageSquare },
+  ]
+
+  const adminItems = [{ name: "Dashboard", href: "/admin", icon: BarChart3 }]
 
   return (
-    <nav className="bg-blue-600 text-white shadow-lg">
+    <nav className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center py-4">
-          <Link href="/" className="text-2xl font-bold">
-            SKConnect
+        <div className="flex h-16 items-center justify-between">
+          {/* Logo */}
+          <Link href="/" className="flex items-center space-x-2">
+            <Image src="/placeholder-logo.svg" alt="SKConnect" width={32} height={32} className="h-8 w-8" />
+            <span className="text-xl font-bold text-blue-600">SKConnect</span>
           </Link>
 
-          {/* Desktop Menu */}
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
-            <Link href="/events" className="hover:text-blue-200 transition-colors flex items-center">
-              <Calendar className="mr-1 h-4 w-4" />
-              Events
-            </Link>
-            <Link href="/suggestions" className="hover:text-blue-200 transition-colors flex items-center">
-              <Lightbulb className="mr-1 h-4 w-4" />
-              Suggestions
-            </Link>
+            {navigationItems.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="flex items-center space-x-1 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+              >
+                {item.icon && <item.icon className="h-4 w-4" />}
+                <span>{item.name}</span>
+              </Link>
+            ))}
 
-            {user ? (
+            {user?.role === "admin" && (
               <>
-                <Link href="/my-events" className="hover:text-blue-200 transition-colors">
-                  My Events
-                </Link>
-                {user.role === "admin" && (
-                  <Link href="/admin" className="hover:text-blue-200 transition-colors">
-                    <Settings className="mr-1 h-4 w-4 inline" />
-                    Admin
+                <div className="h-4 w-px bg-gray-300" />
+                {adminItems.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className="flex items-center space-x-1 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.name}</span>
                   </Link>
-                )}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="text-white hover:text-blue-200 hover:bg-blue-700">
-                      <User className="mr-2 h-4 w-4" />
-                      {user.name}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => router.push("/profile")}>
+                ))}
+              </>
+            )}
+          </div>
+
+          {/* User Menu / Auth Buttons */}
+          <div className="hidden md:flex items-center space-x-4">
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
+                      <AvatarFallback>
+                        {user.name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <div className="flex items-center justify-start gap-2 p-2">
+                    <div className="flex flex-col space-y-1 leading-none">
+                      <p className="font-medium">{user.name}</p>
+                      <p className="w-[200px] truncate text-sm text-muted-foreground">
+                        {user.role === "admin" ? "SK Administrator" : "Youth Member"}
+                      </p>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">
                       <User className="mr-2 h-4 w-4" />
                       Profile
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleLogout}>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Logout
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/my-events">
+                      <Calendar className="mr-2 h-4 w-4" />
+                      My Events
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-red-600">Logout</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
-              <div className="flex items-center space-x-4">
-                <Button asChild variant="ghost" className="text-white hover:text-blue-200 hover:bg-blue-700">
-                  <Link href="/login">Login</Link>
+              <div className="flex items-center space-x-2">
+                <Button asChild variant="ghost">
+                  <Link href="/auth/login">Login</Link>
                 </Button>
-                <Button asChild className="bg-green-600 hover:bg-green-700">
-                  <Link href="/register">Register</Link>
+                <Button asChild>
+                  <Link href="/auth/register">Register</Link>
                 </Button>
               </div>
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
+          {/* Mobile Menu */}
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild className="md:hidden">
+              <Button variant="ghost" size="icon">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <div className="flex flex-col space-y-4 mt-4">
+                <Link href="/" className="flex items-center space-x-2 mb-4">
+                  <Image src="/placeholder-logo.svg" alt="SKConnect" width={32} height={32} className="h-8 w-8" />
+                  <span className="text-xl font-bold text-blue-600">SKConnect</span>
+                </Link>
 
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-blue-500">
-            <div className="flex flex-col space-y-4">
-              <Link
-                href="/events"
-                className="hover:text-blue-200 transition-colors flex items-center"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <Calendar className="mr-2 h-4 w-4" />
-                Events
-              </Link>
-              <Link
-                href="/suggestions"
-                className="hover:text-blue-200 transition-colors flex items-center"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <Lightbulb className="mr-2 h-4 w-4" />
-                Suggestions
-              </Link>
-
-              {user ? (
-                <>
+                {navigationItems.map((item) => (
                   <Link
-                    href="/my-events"
-                    className="hover:text-blue-200 transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
+                    key={item.name}
+                    href={item.href}
+                    className="flex items-center space-x-2 text-lg font-medium text-gray-700 hover:text-blue-600 transition-colors"
+                    onClick={() => setIsOpen(false)}
                   >
-                    My Events
+                    {item.icon && <item.icon className="h-5 w-5" />}
+                    <span>{item.name}</span>
                   </Link>
-                  {user.role === "admin" && (
-                    <Link
-                      href="/admin"
-                      className="hover:text-blue-200 transition-colors flex items-center"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <Settings className="mr-2 h-4 w-4" />
-                      Admin Dashboard
-                    </Link>
-                  )}
-                  <div className="pt-4 border-t border-blue-500">
-                    <p className="text-sm mb-2 flex items-center">
-                      <User className="mr-2 h-4 w-4" />
-                      Welcome, {user.name}
-                    </p>
+                ))}
+
+                {user?.role === "admin" && (
+                  <>
+                    <div className="h-px bg-gray-200 my-2" />
+                    {adminItems.map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className="flex items-center space-x-2 text-lg font-medium text-gray-700 hover:text-blue-600 transition-colors"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        <item.icon className="h-5 w-5" />
+                        <span>{item.name}</span>
+                      </Link>
+                    ))}
+                  </>
+                )}
+
+                <div className="h-px bg-gray-200 my-4" />
+
+                {user ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
+                        <AvatarFallback>
+                          {user.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium">{user.name}</p>
+                        <p className="text-sm text-gray-500">
+                          {user.role === "admin" ? "SK Administrator" : "Youth Member"}
+                        </p>
+                      </div>
+                    </div>
+                    <Button asChild variant="outline" className="w-full bg-transparent">
+                      <Link href="/profile" onClick={() => setIsOpen(false)}>
+                        <User className="mr-2 h-4 w-4" />
+                        Profile
+                      </Link>
+                    </Button>
                     <Button
-                      onClick={handleLogout}
-                      variant="ghost"
-                      className="text-white hover:text-blue-200 hover:bg-blue-700 w-full justify-start"
+                      variant="outline"
+                      className="w-full text-red-600 border-red-200 hover:bg-red-50 bg-transparent"
                     >
-                      <LogOut className="mr-2 h-4 w-4" />
                       Logout
                     </Button>
                   </div>
-                </>
-              ) : (
-                <div className="flex flex-col space-y-2 pt-4 border-t border-blue-500">
-                  <Button
-                    asChild
-                    variant="ghost"
-                    className="text-white hover:text-blue-200 hover:bg-blue-700 justify-start"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Link href="/login">Login</Link>
-                  </Button>
-                  <Button
-                    asChild
-                    className="bg-green-600 hover:bg-green-700 justify-start"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Link href="/register">Register</Link>
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+                ) : (
+                  <div className="space-y-2">
+                    <Button asChild className="w-full">
+                      <Link href="/auth/register" onClick={() => setIsOpen(false)}>
+                        Register
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full bg-transparent">
+                      <Link href="/auth/login" onClick={() => setIsOpen(false)}>
+                        Login
+                      </Link>
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
     </nav>
   )

@@ -1,8 +1,8 @@
 "use client"
 
+import type React from "react"
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
-import { api } from "@/lib/api" // Use the configured API instance
-import { useToast } from "@/hooks/use-toast"
+import axios from "axios"
 
 interface User {
   id: string
@@ -44,29 +44,22 @@ interface AuthProviderProps {
   children: ReactNode
 }
 
-export function AuthProvider({ children }: AuthProviderProps) {
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
-  const [token, setToken] = useState<string | null>(null)
+  const [token, setToken] = useState<string | null>(localStorage.getItem("token"))
   const [loading, setLoading] = useState(true)
-  const { toast } = useToast()
-
-  useEffect(() => {
-    // Get token from localStorage on client side
-    const storedToken = localStorage.getItem("token")
-    setToken(storedToken)
-  }, [])
 
   useEffect(() => {
     const initAuth = async () => {
       if (token) {
         try {
-          api.defaults.headers.common["Authorization"] = `Bearer ${token}`
-          const response = await api.get("/auth/me")
+          axios.defaults.headers.common["Authorization"] = `Bearer ${token}`
+          const response = await axios.get("/api/auth/me")
           setUser(response.data.user)
         } catch (error) {
           localStorage.removeItem("token")
           setToken(null)
-          delete api.defaults.headers.common["Authorization"]
+          delete axios.defaults.headers.common["Authorization"]
         }
       }
       setLoading(false)
@@ -77,51 +70,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await api.post("/auth/login", { email, password })
+      const response = await axios.post("/api/auth/login", { email, password })
       const { token: newToken, user: userData } = response.data
 
       localStorage.setItem("token", newToken)
       setToken(newToken)
       setUser(userData)
-      api.defaults.headers.common["Authorization"] = `Bearer ${newToken}`
-
-      toast({
-        title: "Success",
-        description: "Login successful!",
-      })
+      axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`
     } catch (error: any) {
-      const message = error.response?.data?.message || "Login failed"
-      toast({
-        title: "Error",
-        description: message,
-        variant: "destructive",
-      })
-      throw new Error(message)
+      throw new Error(error.response?.data?.message || "Login failed")
     }
   }
 
   const register = async (userData: RegisterData) => {
     try {
-      const response = await api.post("/auth/register", userData)
+      const response = await axios.post("/api/auth/register", userData)
       const { token: newToken, user: newUser } = response.data
 
       localStorage.setItem("token", newToken)
       setToken(newToken)
       setUser(newUser)
-      api.defaults.headers.common["Authorization"] = `Bearer ${newToken}`
-
-      toast({
-        title: "Success",
-        description: "Registration successful! Welcome to SKConnect!",
-      })
+      axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`
     } catch (error: any) {
-      const message = error.response?.data?.message || "Registration failed"
-      toast({
-        title: "Error",
-        description: message,
-        variant: "destructive",
-      })
-      throw new Error(message)
+      throw new Error(error.response?.data?.message || "Registration failed")
     }
   }
 
@@ -129,12 +100,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     localStorage.removeItem("token")
     setToken(null)
     setUser(null)
-    delete api.defaults.headers.common["Authorization"]
-
-    toast({
-      title: "Success",
-      description: "Logged out successfully",
-    })
+    delete axios.defaults.headers.common["Authorization"]
   }
 
   const value = {
