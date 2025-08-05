@@ -156,18 +156,54 @@ export default function EventsClient() {
     return status === "completed" ? "bg-gray-100 text-gray-600" : "bg-green-100 text-green-800"
   }
 
-  const filteredEvents = events.filter((event) => {
-    const matchesSearch =
-      event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      event.description.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesType = filterType === "all" || event.type === filterType
-    const matchesStatus = filterStatus === "all" || event.status === filterStatus
+  // Since we're using backend filtering, we don't need client-side filtering
+  const displayEvents = events
 
-    return matchesSearch && matchesType && matchesStatus
-  })
+  if (loading) {
+    return (
+      <>
+        {/* Search and Filters Skeleton */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <Skeleton className="h-10 flex-1" />
+          <Skeleton className="h-10 w-full md:w-48" />
+          <Skeleton className="h-10 w-full md:w-48" />
+        </div>
+
+        {/* Events Grid Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <Card key={index} className="overflow-hidden">
+              <Skeleton className="h-48 w-full" />
+              <CardHeader>
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-2 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </>
+    )
+  }
 
   return (
     <>
+      {error && (
+        <Alert className="mb-6" variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
       {/* Search and Filters */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
@@ -191,6 +227,7 @@ export default function EventsClient() {
             <SelectItem value="sports">Sports</SelectItem>
             <SelectItem value="seminar">Seminar</SelectItem>
             <SelectItem value="meeting">Meeting</SelectItem>
+            <SelectItem value="cultural">Cultural</SelectItem>
           </SelectContent>
         </Select>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
@@ -200,14 +237,16 @@ export default function EventsClient() {
           <SelectContent>
             <SelectItem value="all">All Events</SelectItem>
             <SelectItem value="upcoming">Upcoming</SelectItem>
+            <SelectItem value="ongoing">Ongoing</SelectItem>
             <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="cancelled">Cancelled</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {/* Events Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredEvents.map((event) => (
+        {displayEvents.map((event) => (
           <Card key={event.id} className="overflow-hidden hover:shadow-lg transition-shadow">
             <div className="relative h-48">
               <Image src={event.image || "/placeholder.svg"} alt={event.title} fill className="object-cover" />
