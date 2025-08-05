@@ -230,10 +230,13 @@ export default function RegisterForm() {
                     value={formData.phoneNumber}
                     onChange={handleInputChange}
                     required
-                    placeholder="e.g., +639123456789 or 09123456789"
+                    placeholder="09123456789 or +639123456789"
                     className="mt-1"
+                    pattern="^(\+63|0)[0-9]{10}$"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Philippine phone number format</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Must be 11 digits: start with 09 or +639, followed by 9 more digits
+                  </p>
                 </div>
               </div>
 
