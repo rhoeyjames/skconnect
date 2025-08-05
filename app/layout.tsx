@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import Navbar from "@/components/navbar"
 import { ErrorBoundary } from "@/components/error-boundary"
+import ConnectivityStatus from "@/components/connectivity-status"
 
 const inter = Inter({ subsets: ["latin"] })
 
