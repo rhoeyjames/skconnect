@@ -1,21 +1,30 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar, Users, MapPin, Search, Filter, Clock } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Calendar, Users, MapPin, Search, Filter, Clock, AlertCircle, Loader2 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import apiClient from "@/lib/api"
 
 export default function EventsClient() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterType, setFilterType] = useState("all")
   const [filterStatus, setFilterStatus] = useState("all")
+  const [events, setEvents] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
+  const [totalPages, setTotalPages] = useState(1)
+  const [currentPage, setCurrentPage] = useState(1)
 
-  const events = [
+  // Mock events as fallback
+  const mockEvents = [
     {
       id: 1,
       title: "Youth Leadership Workshop",
