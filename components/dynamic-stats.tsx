@@ -118,11 +118,19 @@ export default function DynamicStats() {
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
-        {stats && stats.totalUsers === 0 && (
+        {stats && stats.totalUsers === 0 && !error && (
           <div className="text-center mb-8">
-            <div className="inline-flex items-center px-4 py-2 bg-yellow-100 text-yellow-800 rounded-full text-sm">
+            <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm">
               <span className="mr-2">📊</span>
-              Real-time data from your MongoDB database - showing live statistics!
+              Connected to your MongoDB database - no data found yet
+            </div>
+          </div>
+        )}
+        {error && (
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center px-4 py-2 bg-orange-100 text-orange-800 rounded-full text-sm">
+              <span className="mr-2">⚠️</span>
+              API temporarily unavailable - check connectivity status
             </div>
           </div>
         )}
