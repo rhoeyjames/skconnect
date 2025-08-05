@@ -37,61 +37,88 @@ export default function LoginForm() {
     setError("")
 
     try {
-      // Mock authentication - replace with actual API call
-      if (formData.email === "admin@skconnect.com" && formData.password === "admin123456") {
-        // Admin login
-        const adminUser = {
-          id: "admin-1",
-          firstName: "Admin",
-          lastName: "User",
-          email: "admin@skconnect.com",
-          role: "admin",
-          age: 25,
-          barangay: "Admin Barangay",
+      // Check if using auth context (preferred) or fallback to mock for testing
+      const authContext = typeof window !== 'undefined' && window.location.search.includes('mock=true')
+
+      if (authContext) {
+        // Mock authentication for testing when mock=true is in URL
+        if (formData.email === "admin@skconnect.com" && formData.password === "admin123456") {
+          const adminUser = {
+            id: "admin-1",
+            firstName: "Admin",
+            lastName: "User",
+            email: "admin@skconnect.com",
+            role: "admin",
+            age: 25,
+            barangay: "Admin Barangay",
+          }
+
+          localStorage.setItem("token", "mock-admin-token")
+          localStorage.setItem("user", JSON.stringify(adminUser))
+
+          toast({
+            title: "Welcome back, Admin!",
+            description: "You have been successfully logged in (Mock Mode).",
+          })
+
+          window.location.href = "/admin"
+          return
         }
 
-        localStorage.setItem("token", "mock-admin-token")
-        localStorage.setItem("user", JSON.stringify(adminUser))
+        if (formData.email === "youth@test.com" && formData.password === "password123") {
+          const youthUser = {
+            id: "youth-1",
+            firstName: "Test",
+            lastName: "Youth",
+            email: "youth@test.com",
+            role: "youth",
+            age: 20,
+            barangay: "Test Barangay",
+          }
 
-        toast({
-          title: "Welcome back, Admin!",
-          description: "You have been successfully logged in.",
-        })
+          localStorage.setItem("token", "mock-youth-token")
+          localStorage.setItem("user", JSON.stringify(youthUser))
 
-        // Force page refresh to update navbar
+          toast({
+            title: "Welcome back!",
+            description: "You have been successfully logged in (Mock Mode).",
+          })
+
+          window.location.href = "/"
+          return
+        }
+
+        setError("Invalid email or password. Try admin@skconnect.com / admin123456 or youth@test.com / password123")
+        return
+      }
+
+      // Use real authentication via auth context
+      const { useAuth } = await import("@/lib/auth-context")
+
+      // For server-side compatibility, we'll use the API directly
+      const { default: apiClient } = await import("@/lib/api")
+
+      const data = await apiClient.login(formData.email, formData.password)
+
+      // Store auth data
+      localStorage.setItem("token", data.token)
+      localStorage.setItem("user", JSON.stringify(data.user))
+
+      toast({
+        title: `Welcome back, ${data.user.firstName}!`,
+        description: "You have been successfully logged in.",
+      })
+
+      // Redirect based on role
+      if (data.user.role === "admin") {
         window.location.href = "/admin"
-        return
-      }
-
-      // Mock youth login for testing
-      if (formData.email === "youth@test.com" && formData.password === "password123") {
-        const youthUser = {
-          id: "youth-1",
-          firstName: "Test",
-          lastName: "Youth",
-          email: "youth@test.com",
-          role: "youth",
-          age: 20,
-          barangay: "Test Barangay",
-        }
-
-        localStorage.setItem("token", "mock-youth-token")
-        localStorage.setItem("user", JSON.stringify(youthUser))
-
-        toast({
-          title: "Welcome back!",
-          description: "You have been successfully logged in.",
-        })
-
-        // Force page refresh to update navbar
+      } else {
         window.location.href = "/"
-        return
       }
 
-      // If no mock user matches, show error
-      setError("Invalid email or password. Try admin@skconnect.com / admin123456 or youth@test.com / password123")
-    } catch (error) {
-      setError("Login failed. Please try again.")
+    } catch (error: any) {
+      console.error('Login error:', error)
+      setError(error.message || "Login failed. Please check your credentials and try again.")
     } finally {
       setIsLoading(false)
     }
