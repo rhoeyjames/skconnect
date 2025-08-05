@@ -207,14 +207,14 @@ export default function LoginForm() {
             </div>
 
             {/* Test Credentials */}
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <h4 className="text-sm font-medium text-gray-900 mb-2">Test Credentials:</h4>
-              <div className="text-xs text-gray-600 space-y-1">
+            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <h4 className="text-sm font-medium text-blue-900 mb-2">Development Mode:</h4>
+              <div className="text-xs text-blue-700 space-y-1">
                 <div>
-                  <strong>Admin:</strong> admin@skconnect.com / admin123456
+                  Connect to backend API or use mock data by adding <code className="px-1 py-0.5 bg-blue-100 rounded">?mock=true</code> to URL
                 </div>
-                <div>
-                  <strong>Youth:</strong> youth@test.com / password123
+                <div className="mt-2">
+                  <strong>Mock credentials:</strong> admin@skconnect.com / admin123456
                 </div>
               </div>
             </div>
