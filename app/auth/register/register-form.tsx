@@ -167,21 +167,49 @@ export default function RegisterForm() {
                     />
                   </div>
                 </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="age">Age *</Label>
+                    <Input
+                      id="age"
+                      name="age"
+                      type="number"
+                      min="15"
+                      max="30"
+                      value={formData.age}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Enter your age (15-30)"
+                      className="mt-1"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Must be between 15-30 years old to join SK</p>
+                  </div>
+                  <div>
+                    <Label htmlFor="dateOfBirth">Date of Birth *</Label>
+                    <Input
+                      id="dateOfBirth"
+                      name="dateOfBirth"
+                      type="date"
+                      value={formData.dateOfBirth}
+                      onChange={handleInputChange}
+                      required
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
                 <div>
-                  <Label htmlFor="age">Age *</Label>
+                  <Label htmlFor="phoneNumber">Phone Number *</Label>
                   <Input
-                    id="age"
-                    name="age"
-                    type="number"
-                    min="15"
-                    max="30"
-                    value={formData.age}
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    type="tel"
+                    value={formData.phoneNumber}
                     onChange={handleInputChange}
                     required
-                    placeholder="Enter your age (15-30)"
+                    placeholder="e.g., +639123456789 or 09123456789"
                     className="mt-1"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Must be between 15-30 years old to join SK</p>
+                  <p className="text-xs text-gray-500 mt-1">Philippine phone number format</p>
                 </div>
               </div>
 
