@@ -8,9 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useAuth } from "@/lib/auth-context"
-import { useRouter } from "next/navigation"
-import { Users, Calendar, MessageSquare, BarChart3, Search, Download, Shield, UserCheck, UserX } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { Users, Calendar, TrendingUp, Search, Download, Shield, UserCheck, UserX, Edit } from "lucide-react"
 
 interface User {
   id: string
@@ -18,101 +17,121 @@ interface User {
   lastName: string
   email: string
   role: "youth" | "sk_official" | "admin"
+  age: number
   barangay: string
+  municipality: string
+  province: string
   isActive: boolean
   createdAt: string
 }
 
 export default function AdminDashboard() {
-  const { user } = useAuth()
-  const router = useRouter()
   const [users, setUsers] = useState<User[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [roleFilter, setRoleFilter] = useState("all")
   const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
 
   useEffect(() => {
-    if (!user || user.role !== "admin") {
-      router.push("/")
-      return
-    }
-
-    // Mock data for demonstration
+    // Mock data - in real app, this would fetch from your API
     const mockUsers: User[] = [
       {
         id: "1",
-        firstName: "Juan",
-        lastName: "Dela Cruz",
-        email: "juan@example.com",
-        role: "youth",
-        barangay: "Barangay 1",
-        isActive: true,
-        createdAt: "2024-01-15",
-      },
-      {
-        id: "2",
-        firstName: "Maria",
-        lastName: "Santos",
-        email: "maria@example.com",
-        role: "sk_official",
-        barangay: "Barangay 2",
-        isActive: true,
-        createdAt: "2024-01-10",
-      },
-      {
-        id: "3",
         firstName: "Admin",
         lastName: "User",
         email: "admin@skconnect.com",
         role: "admin",
+        age: 25,
         barangay: "Admin Barangay",
+        municipality: "Admin Municipality",
+        province: "Admin Province",
         isActive: true,
         createdAt: "2024-01-01",
+      },
+      {
+        id: "2",
+        firstName: "Test",
+        lastName: "Youth",
+        email: "youth@test.com",
+        role: "youth",
+        age: 20,
+        barangay: "Test Barangay",
+        municipality: "Test Municipality",
+        province: "Test Province",
+        isActive: true,
+        createdAt: "2024-01-15",
+      },
+      {
+        id: "3",
+        firstName: "Juan",
+        lastName: "Dela Cruz",
+        email: "juan@example.com",
+        role: "youth",
+        age: 22,
+        barangay: "Barangay 1",
+        municipality: "Quezon City",
+        province: "Metro Manila",
+        isActive: true,
+        createdAt: "2024-02-01",
+      },
+      {
+        id: "4",
+        firstName: "Maria",
+        lastName: "Santos",
+        email: "maria@example.com",
+        role: "sk_official",
+        age: 24,
+        barangay: "Barangay 2",
+        municipality: "Makati",
+        province: "Metro Manila",
+        isActive: true,
+        createdAt: "2024-02-15",
       },
     ]
 
     setUsers(mockUsers)
     setLoading(false)
-  }, [user, router])
+  }, [])
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.barangay.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesRole = roleFilter === "all" || user.role === roleFilter
 
     return matchesSearch && matchesRole
   })
 
-  const stats = {
-    totalUsers: users.length,
-    activeUsers: users.filter((u) => u.isActive).length,
-    totalEvents: 12, // Mock data
-    totalFeedback: 45, // Mock data
-  }
-
-  const handleRoleChange = (userId: string, newRole: string) => {
-    setUsers(
-      users.map((user) =>
-        user.id === userId ? { ...user, role: newRole as "youth" | "sk_official" | "admin" } : user,
-      ),
-    )
+  const handleRoleChange = (userId: string, newRole: "youth" | "sk_official" | "admin") => {
+    setUsers((prev) => prev.map((user) => (user.id === userId ? { ...user, role: newRole } : user)))
+    toast({
+      title: "Role Updated",
+      description: "User role has been successfully updated.",
+    })
   }
 
   const handleStatusToggle = (userId: string) => {
-    setUsers(users.map((user) => (user.id === userId ? { ...user, isActive: !user.isActive } : user)))
+    setUsers((prev) => prev.map((user) => (user.id === userId ? { ...user, isActive: !user.isActive } : user)))
+    toast({
+      title: "Status Updated",
+      description: "User status has been successfully updated.",
+    })
   }
 
   const exportUsers = () => {
-    const csv = [
-      ["Name", "Email", "Role", "Barangay", "Status", "Created At"],
+    const csvContent = [
+      ["Name", "Email", "Role", "Age", "Barangay", "Municipality", "Province", "Status", "Created"],
       ...filteredUsers.map((user) => [
         `${user.firstName} ${user.lastName}`,
         user.email,
         user.role,
+        user.age.toString(),
         user.barangay,
+        user.municipality,
+        user.province,
         user.isActive ? "Active" : "Inactive",
         user.createdAt,
       ]),
@@ -120,36 +139,56 @@ export default function AdminDashboard() {
       .map((row) => row.join(","))
       .join("\n")
 
-    const blob = new Blob([csv], { type: "text/csv" })
+    const blob = new Blob([csvContent], { type: "text/csv" })
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
     a.download = "users.csv"
     a.click()
+    window.URL.revokeObjectURL(url)
+
+    toast({
+      title: "Export Complete",
+      description: "User data has been exported to CSV.",
+    })
+  }
+
+  const stats = {
+    totalUsers: users.length,
+    activeUsers: users.filter((u) => u.isActive).length,
+    youthUsers: users.filter((u) => u.role === "youth").length,
+    skOfficials: users.filter((u) => u.role === "sk_official").length,
+    admins: users.filter((u) => u.role === "admin").length,
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-32 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-            <Shield className="h-8 w-8 text-red-600" />
-            Admin Dashboard
-          </h1>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
           <p className="text-gray-600 mt-2">Manage users, events, and system settings</p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -163,34 +202,34 @@ export default function AdminDashboard() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Events</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Youth Members</CardTitle>
+              <UserCheck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalEvents}</div>
-              <p className="text-xs text-muted-foreground">3 upcoming events</p>
+              <div className="text-2xl font-bold">{stats.youthUsers}</div>
+              <p className="text-xs text-muted-foreground">Registered youth members</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Feedback</CardTitle>
-              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">SK Officials</CardTitle>
+              <Shield className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalFeedback}</div>
-              <p className="text-xs text-muted-foreground">12 pending reviews</p>
+              <div className="text-2xl font-bold">{stats.skOfficials}</div>
+              <p className="text-xs text-muted-foreground">Active SK officials</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">System Health</CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Administrators</CardTitle>
+              <Shield className="h-4 w-4 text-red-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">Good</div>
-              <p className="text-xs text-muted-foreground">All systems operational</p>
+              <div className="text-2xl font-bold">{stats.admins}</div>
+              <p className="text-xs text-muted-foreground">System administrators</p>
             </CardContent>
           </Card>
         </div>
@@ -222,7 +261,7 @@ export default function AdminDashboard() {
                     />
                   </div>
                   <Select value={roleFilter} onValueChange={setRoleFilter}>
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-full sm:w-48">
                       <SelectValue placeholder="Filter by role" />
                     </SelectTrigger>
                     <SelectContent>
@@ -246,7 +285,7 @@ export default function AdminDashboard() {
                         <TableHead>Name</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Role</TableHead>
-                        <TableHead>Barangay</TableHead>
+                        <TableHead>Location</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
@@ -259,8 +298,13 @@ export default function AdminDashboard() {
                           </TableCell>
                           <TableCell>{user.email}</TableCell>
                           <TableCell>
-                            <Select value={user.role} onValueChange={(value) => handleRoleChange(user.id, value)}>
-                              <SelectTrigger className="w-[120px]">
+                            <Select
+                              value={user.role}
+                              onValueChange={(value: "youth" | "sk_official" | "admin") =>
+                                handleRoleChange(user.id, value)
+                              }
+                            >
+                              <SelectTrigger className="w-32">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -270,26 +314,31 @@ export default function AdminDashboard() {
                               </SelectContent>
                             </Select>
                           </TableCell>
-                          <TableCell>{user.barangay}</TableCell>
                           <TableCell>
-                            <Badge variant={user.isActive ? "default" : "secondary"}>
+                            <div className="text-sm">
+                              <div>{user.barangay}</div>
+                              <div className="text-gray-500">
+                                {user.municipality}, {user.province}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={user.isActive ? "default" : "secondary"}
+                              className={user.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}
+                            >
                               {user.isActive ? "Active" : "Inactive"}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Button size="sm" variant="outline" onClick={() => handleStatusToggle(user.id)}>
-                              {user.isActive ? (
-                                <>
-                                  <UserX className="h-4 w-4 mr-1" />
-                                  Deactivate
-                                </>
-                              ) : (
-                                <>
-                                  <UserCheck className="h-4 w-4 mr-1" />
-                                  Activate
-                                </>
-                              )}
-                            </Button>
+                            <div className="flex space-x-2">
+                              <Button size="sm" variant="outline" onClick={() => handleStatusToggle(user.id)}>
+                                {user.isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+                              </Button>
+                              <Button size="sm" variant="outline">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -304,10 +353,15 @@ export default function AdminDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Events Management</CardTitle>
-                <CardDescription>View and manage all events in the system</CardDescription>
+                <CardDescription>Manage community events and activities</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-500">Events management interface coming soon...</p>
+                <div className="text-center py-8">
+                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Events Yet</h3>
+                  <p className="text-gray-500 mb-4">Events management features will be available soon.</p>
+                  <Button>Create Event</Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -319,7 +373,13 @@ export default function AdminDashboard() {
                 <CardDescription>View system usage and performance metrics</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-500">Analytics dashboard coming soon...</p>
+                <div className="text-center py-8">
+                  <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Analytics Coming Soon</h3>
+                  <p className="text-gray-500">
+                    Detailed analytics and reporting features will be available in the next update.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
