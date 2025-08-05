@@ -106,6 +106,25 @@ export default function LoginForm() {
           </p>
         </div>
 
+        {/* Role Information Banner */}
+        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h3 className="text-sm font-medium text-blue-800 mb-2">Role Access Information:</h3>
+          <div className="text-sm text-blue-700 space-y-1">
+            <div className="flex items-center">
+              <Users className="h-3 w-3 mr-2 text-green-600" />
+              <span><strong>Youth Member:</strong> Access events, register for activities</span>
+            </div>
+            <div className="flex items-center">
+              <UserCheck className="h-3 w-3 mr-2 text-blue-600" />
+              <span><strong>SK Official:</strong> Manage events, view registrations</span>
+            </div>
+            <div className="flex items-center">
+              <Shield className="h-3 w-3 mr-2 text-red-600" />
+              <span><strong>Administrator:</strong> Full system access and management</span>
+            </div>
+          </div>
+        </div>
+
         <Card>
           <CardHeader>
             <CardTitle>Welcome Back</CardTitle>
