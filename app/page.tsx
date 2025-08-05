@@ -2,7 +2,8 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Users, Calendar, MessageSquare, TrendingUp, ArrowRight, Heart, Target, Globe } from "lucide-react"
+import { Users, Calendar, MessageSquare, TrendingUp, ArrowRight, Heart } from "lucide-react"
+import DynamicStats from "@/components/dynamic-stats"
 
 export default function HomePage() {
   const features = [
