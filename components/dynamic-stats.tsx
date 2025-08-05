@@ -103,12 +103,12 @@ export default function DynamicStats() {
     },
   ]
 
-  if (error) {
+  if (error && stats === null) {
     return (
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center text-gray-500">
-            <p>Unable to load statistics. Please try again later.</p>
+            <p>Unable to load live statistics. Showing placeholder data.</p>
           </div>
         </div>
       </section>
