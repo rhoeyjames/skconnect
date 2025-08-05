@@ -113,8 +113,12 @@ export default function RegisterForm() {
         description: `Welcome to SKConnect, ${data.user.firstName}! You are now logged in.`,
       })
 
-      // Redirect to home
-      window.location.href = "/"
+      // Redirect based on user role
+      if (data.user.role === "admin") {
+        router.push("/admin")
+      } else {
+        router.push("/events") // Default page for users
+      }
     } catch (error: any) {
       console.error('Registration error:', error)
       setError(error.message || "Registration failed. Please check your information and try again.")
