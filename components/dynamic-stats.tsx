@@ -96,29 +96,29 @@ export default function DynamicStats() {
   }
 
   const statsData = [
-    { 
-      label: "Active Youth", 
-      value: stats ? formatNumber(stats.totalUsers) : "...", 
+    {
+      label: "Active Youth",
+      value: isLoading ? "..." : formatNumber(stats.totalUsers),
       icon: Users,
-      realValue: stats?.totalUsers || 0
+      realValue: stats.totalUsers
     },
-    { 
-      label: "Communities", 
-      value: stats ? formatNumber(stats.totalCommunities) : "...", 
+    {
+      label: "Communities",
+      value: isLoading ? "..." : formatNumber(stats.totalCommunities),
       icon: Globe,
-      realValue: stats?.totalCommunities || 0
+      realValue: stats.totalCommunities
     },
-    { 
-      label: "Events Hosted", 
-      value: stats ? formatNumber(stats.totalEvents) : "...", 
+    {
+      label: "Events Hosted",
+      value: isLoading ? "..." : formatNumber(stats.totalEvents),
       icon: Calendar,
-      realValue: stats?.totalEvents || 0
+      realValue: stats.totalEvents
     },
-    { 
-      label: "Projects Completed", 
-      value: stats ? formatNumber(stats.completedEvents) : "...", 
+    {
+      label: "Projects Completed",
+      value: isLoading ? "..." : formatNumber(stats.completedEvents),
       icon: Target,
-      realValue: stats?.completedEvents || 0
+      realValue: stats.completedEvents
     },
   ]
 
