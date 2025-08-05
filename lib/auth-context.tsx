@@ -3,6 +3,7 @@
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import apiClient, { type ApiError } from "./api"
 
 interface User {
   id: string
@@ -10,8 +11,11 @@ interface User {
   lastName: string
   email: string
   role: "youth" | "sk_official" | "admin"
-  age: number
+  age?: number
   barangay: string
+  municipality?: string
+  province?: string
+  profilePicture?: string
 }
 
 interface AuthContextType {
@@ -20,6 +24,8 @@ interface AuthContextType {
   register: (userData: RegisterData) => Promise<void>
   logout: () => void
   loading: boolean
+  updateProfile: (userData: any) => Promise<void>
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>
 }
 
 interface RegisterData {
@@ -31,6 +37,9 @@ interface RegisterData {
   barangay: string
   municipality: string
   province: string
+  phoneNumber?: string
+  dateOfBirth?: string
+  interests?: string[]
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -49,37 +58,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
 
   useEffect(() => {
-    // Check if user is logged in on mount
-    const token = localStorage.getItem("token")
-    const userData = localStorage.getItem("user")
+    // Check if user is logged in on mount and verify token
+    const initializeAuth = async () => {
+      const token = localStorage.getItem("token")
+      const userData = localStorage.getItem("user")
 
-    if (token && userData) {
-      try {
-        setUser(JSON.parse(userData))
-      } catch (error) {
-        console.error("Error parsing user data:", error)
-        localStorage.removeItem("token")
-        localStorage.removeItem("user")
+      if (token && userData) {
+        try {
+          // Verify token with backend
+          const response = await apiClient.verifyToken()
+          if (response.valid) {
+            setUser(JSON.parse(userData))
+          } else {
+            // Token is invalid, clear localStorage
+            localStorage.removeItem("token")
+            localStorage.removeItem("user")
+          }
+        } catch (error) {
+          console.error("Token verification failed:", error)
+          localStorage.removeItem("token")
+          localStorage.removeItem("user")
+        }
       }
+      setLoading(false)
     }
-    setLoading(false)
+
+    initializeAuth()
   }, [])
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      })
-
-      if (!response.ok) {
-        throw new Error("Login failed")
-      }
-
-      const data = await response.json()
+      const data = await apiClient.login(email, password)
 
       localStorage.setItem("token", data.token)
       localStorage.setItem("user", JSON.stringify(data.user))
@@ -92,25 +101,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         router.push("/")
       }
     } catch (error) {
-      throw new Error("Invalid email or password")
+      const apiError = error as ApiError
+      throw new Error(apiError.data?.message || apiError.message || "Login failed")
     }
   }
 
   const register = async (userData: RegisterData) => {
     try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
-      })
-
-      if (!response.ok) {
-        throw new Error("Registration failed")
-      }
-
-      const data = await response.json()
+      const data = await apiClient.register(userData)
 
       localStorage.setItem("token", data.token)
       localStorage.setItem("user", JSON.stringify(data.user))
@@ -118,7 +116,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       router.push("/")
     } catch (error) {
-      throw new Error("Registration failed")
+      const apiError = error as ApiError
+      throw new Error(apiError.data?.message || apiError.message || "Registration failed")
+    }
+  }
+
+  const updateProfile = async (userData: any) => {
+    try {
+      const data = await apiClient.updateProfile(userData)
+
+      // Update user in state and localStorage
+      const updatedUser = data.user
+      setUser(updatedUser)
+      localStorage.setItem("user", JSON.stringify(updatedUser))
+    } catch (error) {
+      const apiError = error as ApiError
+      throw new Error(apiError.data?.message || apiError.message || "Profile update failed")
+    }
+  }
+
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    try {
+      await apiClient.changePassword(currentPassword, newPassword)
+    } catch (error) {
+      const apiError = error as ApiError
+      throw new Error(apiError.data?.message || apiError.message || "Password change failed")
     }
   }
 
@@ -129,5 +151,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push("/")
   }
 
-  return <AuthContext.Provider value={{ user, login, register, logout, loading }}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider
+      value={{ user, login, register, logout, loading, updateProfile, changePassword }}
+    >
+      {children}
+    </AuthContext.Provider>
+  )
 }

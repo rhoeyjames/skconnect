@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
 import { Mail, Lock, Loader2, AlertCircle } from "lucide-react"
+import BackendStatus from "@/components/backend-status"
 
 export default function LoginForm() {
   const [formData, setFormData] = useState({
@@ -37,61 +38,96 @@ export default function LoginForm() {
     setError("")
 
     try {
-      // Mock authentication - replace with actual API call
-      if (formData.email === "admin@skconnect.com" && formData.password === "admin123456") {
-        // Admin login
-        const adminUser = {
-          id: "admin-1",
-          firstName: "Admin",
-          lastName: "User",
-          email: "admin@skconnect.com",
-          role: "admin",
-          age: 25,
-          barangay: "Admin Barangay",
+      // Check if using auth context (preferred) or fallback to mock for testing
+      const authContext = typeof window !== 'undefined' && window.location.search.includes('mock=true')
+
+      if (authContext) {
+        // Mock authentication for testing when mock=true is in URL
+        if (formData.email === "admin@skconnect.com" && formData.password === "admin123456") {
+          const adminUser = {
+            id: "admin-1",
+            firstName: "Admin",
+            lastName: "User",
+            email: "admin@skconnect.com",
+            role: "admin",
+            age: 25,
+            barangay: "Admin Barangay",
+          }
+
+          localStorage.setItem("token", "mock-admin-token")
+          localStorage.setItem("user", JSON.stringify(adminUser))
+
+          toast({
+            title: "Welcome back, Admin!",
+            description: "You have been successfully logged in (Mock Mode).",
+          })
+
+          window.location.href = "/admin"
+          return
         }
 
-        localStorage.setItem("token", "mock-admin-token")
-        localStorage.setItem("user", JSON.stringify(adminUser))
+        if (formData.email === "youth@test.com" && formData.password === "password123") {
+          const youthUser = {
+            id: "youth-1",
+            firstName: "Test",
+            lastName: "Youth",
+            email: "youth@test.com",
+            role: "youth",
+            age: 20,
+            barangay: "Test Barangay",
+          }
 
-        toast({
-          title: "Welcome back, Admin!",
-          description: "You have been successfully logged in.",
-        })
+          localStorage.setItem("token", "mock-youth-token")
+          localStorage.setItem("user", JSON.stringify(youthUser))
 
-        // Force page refresh to update navbar
+          toast({
+            title: "Welcome back!",
+            description: "You have been successfully logged in (Mock Mode).",
+          })
+
+          window.location.href = "/"
+          return
+        }
+
+        setError("Invalid email or password. Try admin@skconnect.com / admin123456 or youth@test.com / password123")
+        return
+      }
+
+      // Use real authentication via API client
+      const { default: apiClient } = await import("@/lib/api")
+
+      const data = await apiClient.login(formData.email, formData.password)
+
+      // Store auth data
+      localStorage.setItem("token", data.token)
+      localStorage.setItem("user", JSON.stringify(data.user))
+
+      toast({
+        title: `Welcome back, ${data.user.firstName}!`,
+        description: "Successfully connected to backend API.",
+      })
+
+      // Redirect based on role
+      if (data.user.role === "admin") {
         window.location.href = "/admin"
-        return
-      }
-
-      // Mock youth login for testing
-      if (formData.email === "youth@test.com" && formData.password === "password123") {
-        const youthUser = {
-          id: "youth-1",
-          firstName: "Test",
-          lastName: "Youth",
-          email: "youth@test.com",
-          role: "youth",
-          age: 20,
-          barangay: "Test Barangay",
-        }
-
-        localStorage.setItem("token", "mock-youth-token")
-        localStorage.setItem("user", JSON.stringify(youthUser))
-
-        toast({
-          title: "Welcome back!",
-          description: "You have been successfully logged in.",
-        })
-
-        // Force page refresh to update navbar
+      } else {
         window.location.href = "/"
-        return
       }
 
-      // If no mock user matches, show error
-      setError("Invalid email or password. Try admin@skconnect.com / admin123456 or youth@test.com / password123")
-    } catch (error) {
-      setError("Login failed. Please try again.")
+    } catch (error: any) {
+      console.error('Login error:', error)
+
+      // Check if it's a network error (backend not available)
+      if (error.message?.includes('fetch') || error.message?.includes('Network') || error.name === 'TypeError') {
+        setError("Backend server not available. Backend should be running on http://localhost:5000")
+        toast({
+          title: "Backend Connection Failed",
+          description: "Make sure the backend server is running on port 5000",
+          variant: "destructive"
+        })
+      } else {
+        setError(error.message || "Login failed. Please check your credentials and try again.")
+      }
     } finally {
       setIsLoading(false)
     }
@@ -180,19 +216,24 @@ export default function LoginForm() {
             </div>
 
             {/* Test Credentials */}
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <h4 className="text-sm font-medium text-gray-900 mb-2">Test Credentials:</h4>
-              <div className="text-xs text-gray-600 space-y-1">
+            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <h4 className="text-sm font-medium text-blue-900 mb-2">Development Mode:</h4>
+              <div className="text-xs text-blue-700 space-y-1">
                 <div>
-                  <strong>Admin:</strong> admin@skconnect.com / admin123456
+                  Connect to backend API or use mock data by adding <code className="px-1 py-0.5 bg-blue-100 rounded">?mock=true</code> to URL
                 </div>
-                <div>
-                  <strong>Youth:</strong> youth@test.com / password123
+                <div className="mt-2">
+                  <strong>Mock credentials:</strong> admin@skconnect.com / admin123456
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
+
+        {/* Backend Status */}
+        <div className="mt-6">
+          <BackendStatus />
+        </div>
       </div>
     </div>
   )

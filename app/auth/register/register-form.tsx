@@ -65,35 +65,37 @@ export default function RegisterForm() {
     }
 
     try {
-      // Mock registration - in real app, this would call your backend API
-      await new Promise((resolve) => setTimeout(resolve, 2000)) // Simulate API call
+      // Use real backend API
+      const { default: apiClient } = await import("@/lib/api")
 
-      // Create mock user
-      const newUser = {
-        id: `user-${Date.now()}`,
+      const registrationData = {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
-        role: "youth",
+        password: formData.password,
         age: Number.parseInt(formData.age),
         barangay: formData.barangay,
         municipality: formData.municipality,
         province: formData.province,
+        interests: formData.interests ? formData.interests.split(',').map(i => i.trim()).filter(i => i) : [],
       }
 
-      // Store in localStorage (in real app, this would be handled by your auth system)
-      localStorage.setItem("token", `mock-token-${Date.now()}`)
-      localStorage.setItem("user", JSON.stringify(newUser))
+      const data = await apiClient.register(registrationData)
+
+      // Store auth data
+      localStorage.setItem("token", data.token)
+      localStorage.setItem("user", JSON.stringify(data.user))
 
       toast({
         title: "Registration Successful!",
-        description: "Welcome to SKConnect! You are now logged in.",
+        description: `Welcome to SKConnect, ${data.user.firstName}! You are now logged in.`,
       })
 
-      // Force page refresh to update navbar and redirect to home
+      // Redirect to home
       window.location.href = "/"
-    } catch (error) {
-      setError("Registration failed. Please try again.")
+    } catch (error: any) {
+      console.error('Registration error:', error)
+      setError(error.message || "Registration failed. Please check your information and try again.")
     } finally {
       setIsLoading(false)
     }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import AdminDashboard from "./admin-dashboard"
+import BackendStatus from "@/components/backend-status"
 
 interface User {
   id: string
@@ -55,5 +56,10 @@ export default function AdminPage() {
     return null
   }
 
-  return <AdminDashboard />
+  return (
+    <div className="container mx-auto p-6 space-y-6">
+      <BackendStatus />
+      <AdminDashboard />
+    </div>
+  )
 }
