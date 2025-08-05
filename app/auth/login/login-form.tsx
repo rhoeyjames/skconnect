@@ -92,10 +92,7 @@ export default function LoginForm() {
         return
       }
 
-      // Use real authentication via auth context
-      const { useAuth } = await import("@/lib/auth-context")
-
-      // For server-side compatibility, we'll use the API directly
+      // Use real authentication via API client
       const { default: apiClient } = await import("@/lib/api")
 
       const data = await apiClient.login(formData.email, formData.password)
@@ -106,7 +103,7 @@ export default function LoginForm() {
 
       toast({
         title: `Welcome back, ${data.user.firstName}!`,
-        description: "You have been successfully logged in.",
+        description: "Successfully connected to backend API.",
       })
 
       // Redirect based on role
