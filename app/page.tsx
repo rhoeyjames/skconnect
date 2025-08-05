@@ -40,6 +40,13 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
+          <div className="mb-6">
+            <img
+              src="https://cdn.builder.io/api/v1/image/assets%2Ffabc43030bfc4ff6a60efabdca8137fc%2F02fa3ab5bc2d4c8b911d079c09d94492?format=webp&width=800"
+              alt="SKConnect - Civic Engagement Platform"
+              className="h-24 w-24 mx-auto mb-4 object-contain"
+            />
+          </div>
           <Badge className="mb-4 bg-blue-100 text-blue-800 hover:bg-blue-200">Empowering Filipino Youth</Badge>
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
             Connect. Engage.
