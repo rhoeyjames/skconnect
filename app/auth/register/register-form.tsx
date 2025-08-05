@@ -130,7 +130,11 @@ export default function RegisterForm() {
       // Extract specific error message from API response
       let errorMessage = "Registration failed. Please check your information and try again."
 
-      if (error.message) {
+      // Check if this is the known "user already exists" case (from backend logs)
+      if (error.message && error.message.includes("400")) {
+        // This is likely the "User already exists" error based on our backend logs
+        errorMessage = "An account with this email address already exists. Please use a different email or try logging in instead."
+      } else if (error.message) {
         console.log('Processing error message:', error.message)
 
         if (error.message.includes("User already exists") || error.message.includes("already exists")) {
@@ -139,8 +143,6 @@ export default function RegisterForm() {
           errorMessage = "Please check that all fields are filled correctly and try again."
         } else if (error.message.includes("phone")) {
           errorMessage = "Please enter a valid Philippine phone number (e.g., 09123456789)."
-        } else if (error.message.includes("email")) {
-          errorMessage = "Please enter a valid email address."
         } else if (error.message.includes("password")) {
           errorMessage = "Password must be at least 6 characters long."
         } else {
