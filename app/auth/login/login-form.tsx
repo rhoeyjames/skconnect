@@ -153,6 +153,32 @@ export default function LoginForm() {
                     />
                   </div>
                 </div>
+                <div>
+                  <Label htmlFor="role">Login As</Label>
+                  <Select value={formData.role} onValueChange={(value) => setFormData(prev => ({ ...prev, role: value }))}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select your role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="youth">
+                        <div className="flex items-center">
+                          <span className="ml-2">Youth Member</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="sk_official">
+                        <div className="flex items-center">
+                          <span className="ml-2">SK Official</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="admin">
+                        <div className="flex items-center">
+                          <span className="ml-2">Administrator</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500 mt-1">Select the role you registered with</p>
+                </div>
               </div>
 
               <div className="flex items-center justify-between">
