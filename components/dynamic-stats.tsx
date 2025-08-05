@@ -43,10 +43,10 @@ export default function DynamicStats() {
       } catch (err: any) {
         console.error('Error fetching stats:', err)
 
-        // Retry logic for network errors (but not for timeouts on first attempt)
-        if (retryCount < 1 && (err.message.includes('fetch') || err.message.includes('timeout'))) {
+        // Only retry once for network errors, not for timeouts
+        if (retryCount < 1 && err.message.includes('fetch') && !err.message.includes('timeout')) {
           console.log(`Retrying stats fetch... (attempt ${retryCount + 1})`)
-          setTimeout(() => fetchStats(retryCount + 1), 2000)
+          setTimeout(() => fetchStats(retryCount + 1), 3000)
           return
         }
 
