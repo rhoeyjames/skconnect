@@ -7,6 +7,7 @@
     "backend:install": "cd backend && npm install",
     "build": "next build",
     "dev": "next dev",
+    "dev:full": "concurrently \"npm run dev\" \"npm run backend\"",
     "lint": "next lint",
     "start": "next start"
   },
