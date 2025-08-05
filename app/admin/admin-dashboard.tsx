@@ -32,56 +32,56 @@ export default function AdminDashboard() {
   const { toast } = useToast()
 
   useEffect(() => {
-    // Load mock users
-    const mockUsers: User[] = [
-      {
-        id: "admin-1",
-        firstName: "Admin",
-        lastName: "User",
-        email: "admin@skconnect.com",
-        role: "admin",
-        age: 25,
-        barangay: "Admin Barangay",
-        municipality: "Admin City",
-        province: "Admin Province",
-        isActive: true,
-        createdAt: "2024-01-01",
-      },
-      {
-        id: "youth-1",
-        firstName: "Test",
-        lastName: "Youth",
-        email: "youth@test.com",
-        role: "youth",
-        age: 20,
-        barangay: "Test Barangay",
-        municipality: "Test City",
-        province: "Test Province",
-        isActive: true,
-        createdAt: "2024-01-15",
-      },
-    ]
-
-    // Add any users from localStorage
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
+    // Fetch real users from API
+    const fetchUsers = async () => {
       try {
-        const user = JSON.parse(storedUser)
-        const existingUser = mockUsers.find((u) => u.email === user.email)
-        if (!existingUser && user.role !== "admin") {
-          mockUsers.push({
-            ...user,
-            isActive: true,
-            createdAt: new Date().toISOString().split("T")[0],
-          })
+        const token = localStorage.getItem('token')
+        if (!token) {
+          console.error('No auth token found')
+          return
         }
+
+        const response = await fetch('/api/admin/users', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch users')
+        }
+
+        const data = await response.json()
+        const realUsers = data.users || []
+
+        // Map backend user format to frontend format
+        const mappedUsers = realUsers.map((user: any) => ({
+          id: user._id || user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          age: user.age,
+          barangay: user.barangay,
+          municipality: user.municipality,
+          province: user.province,
+          isActive: user.isActive,
+          createdAt: user.createdAt ? new Date(user.createdAt).toISOString().split('T')[0] : '2024-01-01',
+        }))
+
+        setUsers(mappedUsers)
       } catch (error) {
-        console.error("Error parsing stored user:", error)
+        console.error('Error fetching users:', error)
+        toast({
+          title: "Error",
+          description: "Failed to load users from database",
+          variant: "destructive",
+        })
       }
     }
 
-    setUsers(mockUsers)
-  }, [])
+    fetchUsers()
+  }, [toast])
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
