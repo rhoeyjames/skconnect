@@ -104,27 +104,9 @@ export default function RegisterForm() {
         interests: formData.interests ? formData.interests.split(',').map(i => i.trim()).filter(i => i) : [],
       }
 
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(registrationData),
-      })
-
-      const data = await response.json()
-      console.log('Direct API - Response data:', data)
-
-      if (!response.ok) {
-        console.log('Direct API - Error response:', data)
-
-        // Handle specific error cases
-        if (data.message) {
-          throw new Error(data.message)
-        } else {
-          throw new Error(`Registration failed (${response.status})`)
-        }
-      }
+      // Use real backend API
+      const { default: apiClient } = await import("@/lib/api")
+      const data = await apiClient.register(registrationData)
 
       // Store auth data
       localStorage.setItem("token", data.token)
