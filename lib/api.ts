@@ -35,7 +35,19 @@ class ApiClient {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        const error = new Error(errorData.message || `HTTP error! status: ${response.status}`) as ApiError
+
+        // Extract specific error message
+        let errorMessage = `HTTP error! status: ${response.status}`
+
+        if (errorData.message) {
+          errorMessage = errorData.message
+        } else if (errorData.errors && Array.isArray(errorData.errors)) {
+          errorMessage = errorData.errors.join(', ')
+        } else if (errorData.error) {
+          errorMessage = errorData.error
+        }
+
+        const error = new Error(errorMessage) as ApiError
         error.status = response.status
         error.data = errorData
         throw error
