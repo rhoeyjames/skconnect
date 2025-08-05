@@ -115,7 +115,18 @@ export default function LoginForm() {
 
     } catch (error: any) {
       console.error('Login error:', error)
-      setError(error.message || "Login failed. Please check your credentials and try again.")
+
+      // Check if it's a network error (backend not available)
+      if (error.message?.includes('fetch') || error.message?.includes('Network') || error.name === 'TypeError') {
+        setError("Backend server not available. Backend should be running on http://localhost:5000")
+        toast({
+          title: "Backend Connection Failed",
+          description: "Make sure the backend server is running on port 5000",
+          variant: "destructive"
+        })
+      } else {
+        setError(error.message || "Login failed. Please check your credentials and try again.")
+      }
     } finally {
       setIsLoading(false)
     }
