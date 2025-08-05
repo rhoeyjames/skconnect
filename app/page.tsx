@@ -33,12 +33,7 @@ export default function HomePage() {
     },
   ]
 
-  const stats = [
-    { label: "Active Youth", value: "1,200+", icon: Users },
-    { label: "Communities", value: "50+", icon: Globe },
-    { label: "Events Hosted", value: "300+", icon: Calendar },
-    { label: "Projects Completed", value: "150+", icon: Target },
-  ]
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
