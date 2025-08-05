@@ -17,7 +17,14 @@ interface DashboardStats {
 }
 
 export default function DynamicStats() {
-  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [stats, setStats] = useState<DashboardStats>({
+    totalUsers: 0,
+    totalEvents: 0,
+    totalCommunities: 0,
+    completedEvents: 0,
+    eventsThisMonth: 0,
+    usersByRole: { youth: 0, sk_official: 0, admin: 0 }
+  })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
