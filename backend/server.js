@@ -70,24 +70,22 @@ app.use("*", (req, res) => {
   res.status(404).json({ message: "Route not found" })
 })
 
-// Connect to MongoDB
+// Connect to MongoDB or create mock data store
+let mongoConnected = false
+
 const connectDB = async () => {
   try {
-    let mongoUri = process.env.MONGODB_URI || "mongodb://localhost:27017/skconnect"
-
-    // For development, try to connect to a cloud MongoDB if local isn't available
-    if (process.env.NODE_ENV === "development") {
-      mongoUri = "mongodb+srv://demo:demo@cluster0.mongodb.net/skconnect?retryWrites=true&w=majority"
-    }
-
+    const mongoUri = process.env.MONGODB_URI || "mongodb://localhost:27017/skconnect"
     await mongoose.connect(mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     })
     console.log("Connected to MongoDB")
+    mongoConnected = true
   } catch (err) {
     console.error("MongoDB connection error:", err)
-    console.log("Will continue without database - some features may not work")
+    console.log("Running without database - using in-memory storage")
+    mongoConnected = false
   }
 }
 
