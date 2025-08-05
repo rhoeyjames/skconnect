@@ -78,9 +78,11 @@ export default function Navbar() {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <Link href="/" className="flex-shrink-0 flex items-center">
-                <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">SK</span>
-                </div>
+                <img
+                src="https://cdn.builder.io/api/v1/image/assets%2Ffabc43030bfc4ff6a60efabdca8137fc%2F02fa3ab5bc2d4c8b911d079c09d94492?format=webp&width=800"
+                alt="SKConnect Logo"
+                className="h-8 w-8 rounded-lg object-contain"
+              />
                 <span className="ml-2 text-xl font-bold text-gray-900">SKConnect</span>
               </Link>
             </div>
@@ -100,9 +102,11 @@ export default function Navbar() {
           {/* Logo and brand */}
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0 flex items-center">
-              <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">SK</span>
-              </div>
+              <img
+                src="https://cdn.builder.io/api/v1/image/assets%2Ffabc43030bfc4ff6a60efabdca8137fc%2F02fa3ab5bc2d4c8b911d079c09d94492?format=webp&width=800"
+                alt="SKConnect Logo"
+                className="h-8 w-8 rounded-lg object-contain"
+              />
               <span className="ml-2 text-xl font-bold text-gray-900">SKConnect</span>
             </Link>
           </div>
