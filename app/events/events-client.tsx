@@ -247,11 +247,18 @@ export default function EventsClient() {
       {/* Events Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {displayEvents.map((event) => (
-          <Card key={event.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+          <Card key={event._id || event.id} className="overflow-hidden hover:shadow-lg transition-shadow">
             <div className="relative h-48">
-              <Image src={event.image || "/placeholder.svg"} alt={event.title} fill className="object-cover" />
+              <Image
+                src={event.image ? `http://localhost:5000${event.image}` : "/placeholder.svg"}
+                alt={event.title}
+                fill
+                className="object-cover"
+              />
               <div className="absolute top-3 left-3 flex gap-2">
-                <Badge className={getEventTypeColor(event.type)}>{event.type.replace("-", " ")}</Badge>
+                <Badge className={getEventTypeColor(event.category || event.type)}>
+                  {(event.category || event.type || "event").replace("-", " ")}
+                </Badge>
                 <Badge className={getStatusColor(event.status)}>{event.status}</Badge>
               </div>
             </div>
@@ -263,31 +270,33 @@ export default function EventsClient() {
               <div className="space-y-2 mb-4">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Calendar className="w-4 h-4" />
-                  {new Date(event.date).toLocaleDateString()}
+                  {new Date(event.date || event.startDate).toLocaleDateString()}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Clock className="w-4 h-4" />
-                  {event.time}
+                  {event.time || new Date(event.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <MapPin className="w-4 h-4" />
-                  {event.venue}
+                  {event.venue || event.location || `${event.barangay}, ${event.municipality}`}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Users className="w-4 h-4" />
-                  {event.participants}/{event.maxParticipants} registered
+                  {event.currentParticipants || event.participants || 0}/{event.maxParticipants} registered
                 </div>
               </div>
 
               <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
                 <div
                   className="bg-blue-600 h-2 rounded-full"
-                  style={{ width: `${(event.participants / event.maxParticipants) * 100}%` }}
+                  style={{
+                    width: `${Math.min(((event.currentParticipants || event.participants || 0) / event.maxParticipants) * 100, 100)}%`
+                  }}
                 ></div>
               </div>
 
-              <Button asChild className="w-full" disabled={event.status === "completed"}>
-                <Link href={`/events/${event.id}`}>
+              <Button asChild className="w-full" disabled={event.status === "completed" || event.status === "cancelled"}>
+                <Link href={`/events/${event._id || event.id}`}>
                   {event.status === "completed" ? "View Details" : "View & Register"}
                 </Link>
               </Button>
