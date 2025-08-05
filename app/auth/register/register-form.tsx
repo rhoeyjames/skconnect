@@ -174,7 +174,29 @@ export default function RegisterForm() {
             {error && (
               <Alert className="mb-6" variant="destructive">
                 <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>
+                  <div className="space-y-2">
+                    <p>{error}</p>
+                    {error.includes("already exists") && (
+                      <div className="text-sm">
+                        <p className="font-medium">What you can do:</p>
+                        <ul className="list-disc list-inside space-y-1 mt-1">
+                          <li>
+                            <Link href="/auth/login" className="text-blue-600 hover:text-blue-500 underline">
+                              Try logging in instead
+                            </Link>
+                          </li>
+                          <li>Use a different email address</li>
+                          <li>
+                            <Link href="/debug/users" className="text-blue-600 hover:text-blue-500 underline">
+                              Check existing accounts
+                            </Link>
+                          </li>
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </AlertDescription>
               </Alert>
             )}
 
