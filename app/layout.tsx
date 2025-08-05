@@ -29,6 +29,7 @@ export default function RootLayout({
           <ErrorBoundary>
             <main>{children}</main>
           </ErrorBoundary>
+          <ConnectivityStatus />
           <Toaster />
         </ThemeProvider>
       </body>
