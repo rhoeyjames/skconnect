@@ -16,6 +16,7 @@ export default function LoginForm() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    role: "youth", // Default role selection
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
