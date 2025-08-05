@@ -156,7 +156,10 @@ export default function DynamicStats() {
                 </div>
                 <div className="text-3xl font-bold text-gray-900 mb-2">
                   {isLoading ? (
-                    <div className="animate-pulse bg-gray-200 h-8 w-16 mx-auto rounded"></div>
+                    <div className="flex flex-col items-center">
+                      <div className="animate-pulse bg-gray-200 h-8 w-16 mx-auto rounded mb-1"></div>
+                      <div className="text-xs text-gray-400">Loading...</div>
+                    </div>
                   ) : (
                     <span title={`Exact count: ${stat.realValue}`}>
                       {stat.value}
