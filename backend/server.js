@@ -76,10 +76,31 @@ app.use("*", (req, res) => {
   res.status(404).json({ message: "Route not found" })
 })
 
-// Connect to MongoDB or create mock data store
+// Connect to MongoDB or use in-memory database
 let mongoConnected = false
 
 const connectDB = async () => {
+  if (process.env.NODE_ENV === "development") {
+    // Use in-memory MongoDB for development
+    const { MongoMemoryServer } = require('mongodb-memory-server')
+    try {
+      const mongod = await MongoMemoryServer.create()
+      const mongoUri = mongod.getUri()
+      console.log("Starting in-memory MongoDB for development...")
+
+      await mongoose.connect(mongoUri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      })
+      console.log("Connected to in-memory MongoDB")
+      mongoConnected = true
+      return
+    } catch (err) {
+      console.error("In-memory MongoDB setup failed:", err)
+    }
+  }
+
+  // Fallback to regular MongoDB
   try {
     const mongoUri = process.env.MONGODB_URI || "mongodb://localhost:27017/skconnect"
     await mongoose.connect(mongoUri, {
@@ -90,7 +111,7 @@ const connectDB = async () => {
     mongoConnected = true
   } catch (err) {
     console.error("MongoDB connection error:", err)
-    console.log("Running without database - using in-memory storage")
+    console.log("Running without database - using fallback mode")
     mongoConnected = false
   }
 }
