@@ -37,6 +37,7 @@ app.use("/api/feedback", require("./routes/feedback"))
 app.use("/api/admin", require("./routes/admin"))
 app.use("/api/setup", require("./routes/setup"))
 app.use("/api/debug", require("./routes/debug"))
+app.use("/api/dashboard", require("./routes/dashboard"))
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
