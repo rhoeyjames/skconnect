@@ -72,8 +72,10 @@ export default function RegisterForm() {
       return
     }
 
-    if (!formData.phoneNumber.match(/^(\+63|0)[0-9]{10}$/)) {
-      setError("Please enter a valid Philippine phone number")
+    // Validate phone number format for Philippines
+    const phoneRegex = /^(\+63|0)[0-9]{10}$/
+    if (!phoneRegex.test(formData.phoneNumber)) {
+      setError("Phone number must be in format: +639123456789 or 09123456789 (exactly 11 digits starting with +63 or 0)")
       setIsLoading(false)
       return
     }
