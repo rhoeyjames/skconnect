@@ -5,6 +5,8 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import Navbar from "@/components/navbar"
+import { ErrorBoundary } from "@/components/error-boundary"
+import ConnectivityStatus from "@/components/connectivity-status"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -24,7 +26,10 @@ export default function RootLayout({
       <body className={inter.className} suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <Navbar />
-          <main>{children}</main>
+          <ErrorBoundary>
+            <main>{children}</main>
+          </ErrorBoundary>
+          <ConnectivityStatus />
           <Toaster />
         </ThemeProvider>
       </body>

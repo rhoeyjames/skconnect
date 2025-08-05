@@ -4,7 +4,7 @@ const BACKEND_URL = 'http://localhost:5001'
 
 export async function GET(request: NextRequest) {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/health`, {
+    const response = await fetch(`${BACKEND_URL}/api/dashboard/stats`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -19,10 +19,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Health check proxy error:', error)
+    console.error('Dashboard stats proxy error:', error)
     return NextResponse.json(
-      { message: 'Backend not available', status: 'ERROR' },
-      { status: 503 }
+      { message: 'Failed to fetch dashboard statistics' },
+      { status: 500 }
     )
   }
 }

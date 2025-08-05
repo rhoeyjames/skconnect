@@ -2,7 +2,8 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Users, Calendar, MessageSquare, TrendingUp, ArrowRight, Heart, Target, Globe } from "lucide-react"
+import { Users, Calendar, MessageSquare, TrendingUp, ArrowRight, Heart } from "lucide-react"
+import DynamicStats from "@/components/dynamic-stats"
 
 export default function HomePage() {
   const features = [
@@ -32,18 +33,20 @@ export default function HomePage() {
     },
   ]
 
-  const stats = [
-    { label: "Active Youth", value: "1,200+", icon: Users },
-    { label: "Communities", value: "50+", icon: Globe },
-    { label: "Events Hosted", value: "300+", icon: Calendar },
-    { label: "Projects Completed", value: "150+", icon: Target },
-  ]
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Hero Section */}
       <section className="relative py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
+          <div className="mb-6">
+            <img
+              src="https://cdn.builder.io/api/v1/image/assets%2Ffabc43030bfc4ff6a60efabdca8137fc%2F02fa3ab5bc2d4c8b911d079c09d94492?format=webp&width=800"
+              alt="SKConnect - Civic Engagement Platform"
+              className="h-24 w-24 mx-auto mb-4 object-contain"
+            />
+          </div>
           <Badge className="mb-4 bg-blue-100 text-blue-800 hover:bg-blue-200">Empowering Filipino Youth</Badge>
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
             Connect. Engage.
@@ -69,25 +72,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => {
-              const Icon = stat.icon
-              return (
-                <div key={index} className="text-center">
-                  <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg mb-4">
-                    <Icon className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</div>
-                  <div className="text-gray-600">{stat.label}</div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
+      {/* Dynamic Stats Section */}
+      <DynamicStats />
 
       {/* Features Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">

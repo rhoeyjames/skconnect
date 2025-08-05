@@ -37,6 +37,7 @@ app.use("/api/feedback", require("./routes/feedback"))
 app.use("/api/admin", require("./routes/admin"))
 app.use("/api/setup", require("./routes/setup"))
 app.use("/api/debug", require("./routes/debug"))
+app.use("/api/dashboard", require("./routes/dashboard"))
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
@@ -105,6 +106,7 @@ const PORT = process.env.PORT || 5000
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
   console.log(`Environment: ${process.env.NODE_ENV || "development"}`)
+  // Updated for MongoDB connection
 })
 
 module.exports = app
