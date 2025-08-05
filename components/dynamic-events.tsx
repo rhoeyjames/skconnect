@@ -37,17 +37,36 @@ export default function DynamicEvents({ userRole }: DynamicEventsProps) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchEvents = async () => {
+    const fetchEvents = async (retryCount = 0) => {
       try {
-        const response = await fetch('/api/events?limit=6&status=active')
+        setIsLoading(true)
+        setError(null)
+
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
+        const response = await fetch('/api/events?limit=6&status=active', {
+          signal: controller.signal
+        })
+
+        clearTimeout(timeoutId)
+
         if (!response.ok) {
-          throw new Error('Failed to fetch events')
+          throw new Error(`HTTP ${response.status}: Failed to fetch events`)
         }
         const data = await response.json()
         setEvents(data.events || [])
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error fetching events:', err)
-        setError('Failed to load events')
+
+        // Retry logic for network errors
+        if (retryCount < 2 && (err.name === 'AbortError' || err.message.includes('fetch'))) {
+          console.log(`Retrying events fetch... (attempt ${retryCount + 1})`)
+          setTimeout(() => fetchEvents(retryCount + 1), 1000 * (retryCount + 1))
+          return
+        }
+
+        setError('Unable to load events from database')
       } finally {
         setIsLoading(false)
       }
