@@ -22,6 +22,11 @@ router.post("/register", async (req, res) => {
       interests,
     } = req.body
 
+    // Basic validation
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({ message: "Missing required fields" })
+    }
+
     // Check if user already exists
     const existingUser = await User.findOne({ email })
     if (existingUser) {
@@ -66,6 +71,17 @@ router.post("/register", async (req, res) => {
     })
   } catch (error) {
     console.error("Registration error:", error)
+
+    // Handle validation errors specifically
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message)
+      return res.status(400).json({
+        message: "Validation failed",
+        errors: validationErrors,
+        details: error.message,
+      })
+    }
+
     res.status(400).json({
       message: "Registration failed",
       error: error.message,

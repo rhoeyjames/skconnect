@@ -25,6 +25,8 @@ export default function RegisterForm() {
     barangay: "",
     municipality: "",
     province: "",
+    phoneNumber: "",
+    dateOfBirth: "",
     interests: "",
   })
   const [isLoading, setIsLoading] = useState(false)
@@ -64,8 +66,27 @@ export default function RegisterForm() {
       return
     }
 
+    if (!formData.phoneNumber) {
+      setError("Phone number is required")
+      setIsLoading(false)
+      return
+    }
+
+    // Validate phone number format for Philippines
+    const phoneRegex = /^(\+63|0)[0-9]{10}$/
+    if (!phoneRegex.test(formData.phoneNumber)) {
+      setError("Phone number must be in format: +639123456789 or 09123456789 (exactly 11 digits starting with +63 or 0)")
+      setIsLoading(false)
+      return
+    }
+
+    if (!formData.dateOfBirth) {
+      setError("Date of birth is required")
+      setIsLoading(false)
+      return
+    }
+
     try {
-      // Use real backend API
       const { default: apiClient } = await import("@/lib/api")
 
       const registrationData = {
@@ -77,6 +98,8 @@ export default function RegisterForm() {
         barangay: formData.barangay,
         municipality: formData.municipality,
         province: formData.province,
+        phoneNumber: formData.phoneNumber,
+        dateOfBirth: formData.dateOfBirth,
         interests: formData.interests ? formData.interests.split(',').map(i => i.trim()).filter(i => i) : [],
       }
 
@@ -91,11 +114,42 @@ export default function RegisterForm() {
         description: `Welcome to SKConnect, ${data.user.firstName}! You are now logged in.`,
       })
 
-      // Redirect to home
-      window.location.href = "/"
+      // Redirect based on user role
+      if (data.user.role === "admin") {
+        router.push("/admin")
+      } else {
+        router.push("/events") // Default page for users
+      }
     } catch (error: any) {
       console.error('Registration error:', error)
-      setError(error.message || "Registration failed. Please check your information and try again.")
+      console.error('Error message:', error.message)
+      console.error('Error data:', error.data)
+
+      // Extract specific error message from API response
+      let errorMessage = "Registration failed. Please check your information and try again."
+
+      // Check if this is the known "user already exists" case (from backend logs)
+      if (error.message && error.message.includes("400")) {
+        // This is likely the "User already exists" error based on our backend logs
+        errorMessage = "An account with this email address already exists. Please use a different email or try logging in instead."
+      } else if (error.message) {
+        console.log('Processing error message:', error.message)
+
+        if (error.message.includes("User already exists") || error.message.includes("already exists")) {
+          errorMessage = "An account with this email address already exists. Please use a different email or try logging in instead."
+        } else if (error.message.includes("validation failed") || error.message.includes("Validation")) {
+          errorMessage = "Please check that all fields are filled correctly and try again."
+        } else if (error.message.includes("phone")) {
+          errorMessage = "Please enter a valid Philippine phone number (e.g., 09123456789)."
+        } else if (error.message.includes("password")) {
+          errorMessage = "Password must be at least 6 characters long."
+        } else {
+          errorMessage = error.message
+        }
+      }
+
+      console.log('Final error message:', errorMessage)
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -126,7 +180,25 @@ export default function RegisterForm() {
             {error && (
               <Alert className="mb-6" variant="destructive">
                 <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>
+                  <div className="space-y-2">
+                    <p>{error}</p>
+                    {error.includes("already exists") && (
+                      <div className="text-sm">
+                        <p className="font-medium">What you can do:</p>
+                        <ul className="list-disc list-inside space-y-1 mt-1">
+                          <li>
+                            <Link href="/auth/login" className="text-blue-600 hover:text-blue-500 underline">
+                              Try logging in instead
+                            </Link>
+                          </li>
+                          <li>Use a different email address</li>
+                          <li>Contact support if you forgot your login details</li>
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </AlertDescription>
               </Alert>
             )}
 
@@ -163,21 +235,52 @@ export default function RegisterForm() {
                     />
                   </div>
                 </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="age">Age *</Label>
+                    <Input
+                      id="age"
+                      name="age"
+                      type="number"
+                      min="15"
+                      max="30"
+                      value={formData.age}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Enter your age (15-30)"
+                      className="mt-1"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Must be between 15-30 years old to join SK</p>
+                  </div>
+                  <div>
+                    <Label htmlFor="dateOfBirth">Date of Birth *</Label>
+                    <Input
+                      id="dateOfBirth"
+                      name="dateOfBirth"
+                      type="date"
+                      value={formData.dateOfBirth}
+                      onChange={handleInputChange}
+                      required
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
                 <div>
-                  <Label htmlFor="age">Age *</Label>
+                  <Label htmlFor="phoneNumber">Phone Number *</Label>
                   <Input
-                    id="age"
-                    name="age"
-                    type="number"
-                    min="15"
-                    max="30"
-                    value={formData.age}
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    type="tel"
+                    value={formData.phoneNumber}
                     onChange={handleInputChange}
                     required
-                    placeholder="Enter your age (15-30)"
+                    placeholder="09123456789 or +639123456789"
                     className="mt-1"
+                    pattern="^(\+63|0)[0-9]{10}$"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Must be between 15-30 years old to join SK</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Must be 11 digits: start with 09 or +639, followed by 9 more digits
+                  </p>
                 </div>
               </div>
 

@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api'
 
 interface ApiError extends Error {
   status?: number
@@ -35,7 +35,29 @@ class ApiClient {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        const error = new Error(errorData.message || `HTTP error! status: ${response.status}`) as ApiError
+
+        console.log('API Client - Error response status:', response.status)
+        console.log('API Client - Error data received:', errorData)
+
+        // Extract specific error message
+        let errorMessage = `HTTP error! status: ${response.status}`
+
+        if (errorData.message) {
+          console.log('API Client - Found message in errorData:', errorData.message)
+          errorMessage = errorData.message
+        } else if (errorData.errors && Array.isArray(errorData.errors)) {
+          console.log('API Client - Found errors array:', errorData.errors)
+          errorMessage = errorData.errors.join(', ')
+        } else if (errorData.error) {
+          console.log('API Client - Found error field:', errorData.error)
+          errorMessage = errorData.error
+        } else {
+          console.log('API Client - No recognized error message field found')
+        }
+
+        console.log('API Client - Final error message:', errorMessage)
+
+        const error = new Error(errorMessage) as ApiError
         error.status = response.status
         error.data = errorData
         throw error
