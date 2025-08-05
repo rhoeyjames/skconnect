@@ -127,7 +127,15 @@ export default function DynamicStats() {
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
-        {stats && stats.totalUsers === 0 && !error && (
+        {isLoading && (
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm">
+              <span className="mr-2">⏳</span>
+              Loading live data from MongoDB database...
+            </div>
+          </div>
+        )}
+        {!isLoading && stats.totalUsers === 0 && !error && (
           <div className="text-center mb-8">
             <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm">
               <span className="mr-2">📊</span>
@@ -139,7 +147,15 @@ export default function DynamicStats() {
           <div className="text-center mb-8">
             <div className="inline-flex items-center px-4 py-2 bg-orange-100 text-orange-800 rounded-full text-sm">
               <span className="mr-2">⚠️</span>
-              API temporarily unavailable - check connectivity status
+              {error}
+            </div>
+          </div>
+        )}
+        {!isLoading && !error && stats.totalUsers > 0 && (
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm">
+              <span className="mr-2">✅</span>
+              Live data from MongoDB database loaded successfully
             </div>
           </div>
         )}
