@@ -42,32 +42,24 @@ const User = mongoose.model("User", userSchema)
 
 async function createAdminUser() {
   try {
-    // Check if MONGODB_URI is available
-    let mongoUri = process.env.MONGODB_URI
-    if (!mongoUri) {
-      console.error("MONGODB_URI environment variable is not set!")
-      console.log("Please check your .env file in the backend directory")
-      return
-    }
-
-    // Add database name if not present
-    if (!mongoUri.includes("mongodb.net/") || mongoUri.includes("mongodb.net/?")) {
-      mongoUri = mongoUri.replace("mongodb.net/?", "mongodb.net/skconnect?")
-    }
+    // Use the MongoDB URI directly since we know it
+    const mongoUri =
+      "mongodb+srv://jamesrowi:jamesrhoey@mernapp.zomz5.mongodb.net/skconnect?retryWrites=true&w=majority&appName=MERNapp"
 
     console.log("Connecting to MongoDB...")
-    console.log("URI:", mongoUri.replace(/\/\/.*@/, "//***:***@")) // Hide credentials in log
+    console.log(
+      "URI: mongodb+srv://***:***@mernapp.zomz5.mongodb.net/skconnect?retryWrites=true&w=majority&appName=MERNapp",
+    )
 
     // Connect to MongoDB
     await mongoose.connect(mongoUri)
-    console.log("Connected to MongoDB successfully!")
+    console.log("✅ Connected to MongoDB successfully!")
 
     // Check if admin already exists
     const existingAdmin = await User.findOne({ email: "admin@skconnect.com" })
     if (existingAdmin) {
       console.log("✅ Admin user already exists!")
       console.log("📧 Email: admin@skconnect.com")
-      console.log("🔑 Use your existing password or reset it")
       console.log("👤 Role:", existingAdmin.role)
 
       // Update role to admin if it's not already
