@@ -66,6 +66,24 @@ export default function RegisterForm() {
       return
     }
 
+    if (!formData.phoneNumber) {
+      setError("Phone number is required")
+      setIsLoading(false)
+      return
+    }
+
+    if (!formData.phoneNumber.match(/^(\+63|0)[0-9]{10}$/)) {
+      setError("Please enter a valid Philippine phone number")
+      setIsLoading(false)
+      return
+    }
+
+    if (!formData.dateOfBirth) {
+      setError("Date of birth is required")
+      setIsLoading(false)
+      return
+    }
+
     try {
       // Use real backend API
       const { default: apiClient } = await import("@/lib/api")
