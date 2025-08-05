@@ -4,45 +4,53 @@ const Event = require("../models/Event")
 
 const router = express.Router()
 
-// Get dashboard statistics
+// Get dashboard statistics (optimized for performance)
 router.get("/stats", async (req, res) => {
   try {
-    // Get total active users
-    const totalUsers = await User.countDocuments({ isActive: true })
-    
-    // Get total events
-    const totalEvents = await Event.countDocuments()
-    
-    // Get events this month
-    const startOfMonth = new Date()
-    startOfMonth.setDate(1)
-    startOfMonth.setHours(0, 0, 0, 0)
-    
-    const eventsThisMonth = await Event.countDocuments({
-      createdAt: { $gte: startOfMonth }
-    })
-    
-    // Get unique locations (barangays/municipalities)
-    const uniqueLocations = await User.distinct("municipality")
-    const totalCommunities = uniqueLocations.length
-    
-    // Get completed events (past events)
-    const currentDate = new Date()
-    const completedEvents = await Event.countDocuments({
-      endDate: { $lt: currentDate }
-    })
-    
-    // Get user role distribution
-    const usersByRole = await User.aggregate([
-      { $match: { isActive: true } },
-      { $group: { _id: "$role", count: { $sum: 1 } } }
+    // Use Promise.all to run queries in parallel for better performance
+    const [
+      totalUsers,
+      totalEvents,
+      eventsThisMonth,
+      uniqueLocations,
+      completedEvents,
+      usersByRole,
+      recentEvents
+    ] = await Promise.all([
+      // Get total active users
+      User.countDocuments({ isActive: true }),
+
+      // Get total events
+      Event.countDocuments(),
+
+      // Get events this month
+      Event.countDocuments({
+        createdAt: {
+          $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+        }
+      }),
+
+      // Get unique locations (barangays/municipalities) - limited for performance
+      User.distinct("municipality").then(locations => locations.filter(Boolean)),
+
+      // Get completed events (past events)
+      Event.countDocuments({
+        endDate: { $lt: new Date() }
+      }),
+
+      // Get user role distribution
+      User.aggregate([
+        { $match: { isActive: true } },
+        { $group: { _id: "$role", count: { $sum: 1 } } }
+      ]),
+
+      // Get recent events (limited fields for performance)
+      Event.find()
+        .sort({ createdAt: -1 })
+        .limit(3)
+        .select('title category status startDate endDate')
+        .lean() // Use lean() for better performance
     ])
-    
-    // Get recent events
-    const recentEvents = await Event.find()
-      .sort({ createdAt: -1 })
-      .limit(5)
-      .select('title category status startDate endDate')
     
     res.json({
       message: "Dashboard statistics retrieved successfully",
