@@ -94,8 +94,12 @@ export default function LoginForm() {
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md mx-auto">
         <div className="text-center mb-8">
-          <div className="mx-auto h-12 w-12 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-lg">SK</span>
+          <div className="mx-auto h-12 w-12 rounded-lg flex items-center justify-center">
+            <img
+              src="https://cdn.builder.io/api/v1/image/assets%2Ffabc43030bfc4ff6a60efabdca8137fc%2F02fa3ab5bc2d4c8b911d079c09d94492?format=webp&width=800"
+              alt="SKConnect Logo"
+              className="h-12 w-12 rounded-lg object-contain"
+            />
           </div>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Sign in to SKConnect</h2>
           <p className="mt-2 text-sm text-gray-600">
