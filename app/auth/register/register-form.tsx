@@ -104,7 +104,6 @@ export default function RegisterForm() {
         interests: formData.interests ? formData.interests.split(',').map(i => i.trim()).filter(i => i) : [],
       }
 
-      // Use real backend API
       const { default: apiClient } = await import("@/lib/api")
       const data = await apiClient.register(registrationData)
 
