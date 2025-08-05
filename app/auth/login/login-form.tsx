@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import { Mail, Lock } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
+import { Mail, Lock, Loader2 } from "lucide-react"
 
 export default function LoginForm() {
   const [formData, setFormData] = useState({
@@ -16,6 +17,7 @@ export default function LoginForm() {
   })
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
+  const { login } = useAuth()
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
@@ -29,23 +31,15 @@ export default function LoginForm() {
     setIsLoading(true)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
+      await login(formData.email, formData.password)
       toast({
         title: "Login Successful!",
         description: "Welcome back to SKConnect!",
       })
-
-      // Reset form
-      setFormData({
-        email: "",
-        password: "",
-      })
     } catch (error) {
       toast({
         title: "Login Failed",
-        description: "Invalid email or password. Please try again.",
+        description: error instanceof Error ? error.message : "Invalid email or password",
         variant: "destructive",
       })
     } finally {
@@ -60,7 +54,15 @@ export default function LoginForm() {
           <Mail className="w-4 h-4" />
           Email Address
         </Label>
-        <Input id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} required />
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          value={formData.email}
+          onChange={handleInputChange}
+          required
+          placeholder="Enter your email"
+        />
       </div>
       <div>
         <Label htmlFor="password" className="flex items-center gap-2">
@@ -74,11 +76,19 @@ export default function LoginForm() {
           value={formData.password}
           onChange={handleInputChange}
           required
+          placeholder="Enter your password"
         />
       </div>
 
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? "Signing In..." : "Sign In"}
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Signing In...
+          </>
+        ) : (
+          "Sign In"
+        )}
       </Button>
     </form>
   )
