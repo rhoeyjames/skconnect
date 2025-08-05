@@ -162,16 +162,19 @@ export default function LoginForm() {
                     <SelectContent>
                       <SelectItem value="youth">
                         <div className="flex items-center">
+                          <Users className="h-4 w-4 text-green-600" />
                           <span className="ml-2">Youth Member</span>
                         </div>
                       </SelectItem>
                       <SelectItem value="sk_official">
                         <div className="flex items-center">
+                          <UserCheck className="h-4 w-4 text-blue-600" />
                           <span className="ml-2">SK Official</span>
                         </div>
                       </SelectItem>
                       <SelectItem value="admin">
                         <div className="flex items-center">
+                          <Shield className="h-4 w-4 text-red-600" />
                           <span className="ml-2">Administrator</span>
                         </div>
                       </SelectItem>
