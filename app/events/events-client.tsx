@@ -305,11 +305,47 @@ export default function EventsClient() {
         ))}
       </div>
 
-      {filteredEvents.length === 0 && (
+      {displayEvents.length === 0 && !loading && (
         <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">No events found matching your criteria.</p>
-          <Button asChild className="mt-4">
-            <Link href="/">Back to Home</Link>
+          <AlertCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          <p className="text-gray-500 text-lg mb-2">No events found matching your criteria.</p>
+          <p className="text-gray-400 text-sm mb-4">
+            Try adjusting your filters or search terms.
+          </p>
+          <div className="flex gap-2 justify-center">
+            <Button variant="outline" onClick={() => {
+              setSearchTerm("")
+              setFilterType("all")
+              setFilterStatus("all")
+            }}>
+              Clear Filters
+            </Button>
+            <Button asChild>
+              <Link href="/">Back to Home</Link>
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-8 gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+          <span className="flex items-center px-4 py-2 text-sm text-gray-600">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+          >
+            Next
           </Button>
         </div>
       )}
