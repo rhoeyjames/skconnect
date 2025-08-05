@@ -4,8 +4,18 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import AdminDashboard from "./admin-dashboard"
 
+interface User {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+  role: "youth" | "sk_official" | "admin"
+  age: number
+  barangay: string
+}
+
 export default function AdminPage() {
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
@@ -35,7 +45,7 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     )

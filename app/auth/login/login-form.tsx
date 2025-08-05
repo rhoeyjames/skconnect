@@ -48,8 +48,6 @@ export default function LoginForm() {
           role: "admin",
           age: 25,
           barangay: "Admin Barangay",
-          municipality: "Admin City",
-          province: "Admin Province",
         }
 
         localStorage.setItem("token", "mock-admin-token")
@@ -75,8 +73,6 @@ export default function LoginForm() {
           role: "youth",
           age: 20,
           barangay: "Test Barangay",
-          municipality: "Test City",
-          province: "Test Province",
         }
 
         localStorage.setItem("token", "mock-youth-token")
@@ -92,26 +88,8 @@ export default function LoginForm() {
         return
       }
 
-      // Check if it's a registered user from localStorage
-      const registeredUsers = JSON.parse(localStorage.getItem("registeredUsers") || "[]")
-      const user = registeredUsers.find((u: any) => u.email === formData.email && u.password === formData.password)
-
-      if (user) {
-        localStorage.setItem("token", `mock-token-${user.id}`)
-        localStorage.setItem("user", JSON.stringify(user))
-
-        toast({
-          title: "Welcome back!",
-          description: "You have been successfully logged in.",
-        })
-
-        // Force page refresh to update navbar
-        window.location.href = "/"
-        return
-      }
-
-      // If no user matches, show error
-      setError("Invalid email or password. Please check your credentials and try again.")
+      // If no mock user matches, show error
+      setError("Invalid email or password. Try admin@skconnect.com / admin123456 or youth@test.com / password123")
     } catch (error) {
       setError("Login failed. Please try again.")
     } finally {
@@ -202,22 +180,14 @@ export default function LoginForm() {
             </div>
 
             {/* Test Credentials */}
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <h4 className="text-sm font-medium text-blue-900 mb-2">🔑 Test Credentials:</h4>
-              <div className="text-xs text-blue-800 space-y-2">
-                <div className="bg-white p-2 rounded border">
-                  <strong>Admin Access:</strong>
-                  <br />
-                  Email: admin@skconnect.com
-                  <br />
-                  Password: admin123456
+            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+              <h4 className="text-sm font-medium text-gray-900 mb-2">Test Credentials:</h4>
+              <div className="text-xs text-gray-600 space-y-1">
+                <div>
+                  <strong>Admin:</strong> admin@skconnect.com / admin123456
                 </div>
-                <div className="bg-white p-2 rounded border">
-                  <strong>Youth User:</strong>
-                  <br />
-                  Email: youth@test.com
-                  <br />
-                  Password: password123
+                <div>
+                  <strong>Youth:</strong> youth@test.com / password123
                 </div>
               </div>
             </div>
