@@ -56,5 +56,10 @@ export default function AdminPage() {
     return null
   }
 
-  return <AdminDashboard />
+  return (
+    <div className="container mx-auto p-6 space-y-6">
+      <BackendStatus />
+      <AdminDashboard />
+    </div>
+  )
 }
