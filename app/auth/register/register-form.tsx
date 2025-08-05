@@ -25,6 +25,8 @@ export default function RegisterForm() {
     barangay: "",
     municipality: "",
     province: "",
+    phoneNumber: "",
+    dateOfBirth: "",
     interests: "",
   })
   const [isLoading, setIsLoading] = useState(false)
@@ -77,6 +79,8 @@ export default function RegisterForm() {
         barangay: formData.barangay,
         municipality: formData.municipality,
         province: formData.province,
+        phoneNumber: formData.phoneNumber,
+        dateOfBirth: formData.dateOfBirth,
         interests: formData.interests ? formData.interests.split(',').map(i => i.trim()).filter(i => i) : [],
       }
 
