@@ -64,25 +64,41 @@ export default function RegisterForm() {
       return
     }
 
-    try {
-      // Mock registration - in real app, this would call your backend API
-      await new Promise((resolve) => setTimeout(resolve, 2000)) // Simulate API call
+    // Check if email already exists
+    const registeredUsers = JSON.parse(localStorage.getItem("registeredUsers") || "[]")
+    if (registeredUsers.some((user: any) => user.email === formData.email)) {
+      setError("An account with this email already exists")
+      setIsLoading(false)
+      return
+    }
 
-      // Create mock user
+    try {
+      // Mock registration - simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+
+      // Create new user
       const newUser = {
         id: `user-${Date.now()}`,
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
+        password: formData.password, // In real app, this would be hashed
         role: "youth",
         age: Number.parseInt(formData.age),
         barangay: formData.barangay,
         municipality: formData.municipality,
         province: formData.province,
+        interests: formData.interests,
+        isActive: true,
+        createdAt: new Date().toISOString().split("T")[0],
       }
 
-      // Store in localStorage (in real app, this would be handled by your auth system)
-      localStorage.setItem("token", `mock-token-${Date.now()}`)
+      // Save to registered users list
+      const updatedUsers = [...registeredUsers, newUser]
+      localStorage.setItem("registeredUsers", JSON.stringify(updatedUsers))
+
+      // Log the user in
+      localStorage.setItem("token", `mock-token-${newUser.id}`)
       localStorage.setItem("user", JSON.stringify(newUser))
 
       toast({
@@ -90,8 +106,8 @@ export default function RegisterForm() {
         description: "Welcome to SKConnect! You are now logged in.",
       })
 
-      // Redirect to home page
-      router.push("/")
+      // Force page refresh to update navbar and redirect
+      window.location.href = "/"
     } catch (error) {
       setError("Registration failed. Please try again.")
     } finally {
