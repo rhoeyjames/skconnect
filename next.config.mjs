@@ -9,6 +9,10 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // Force deployment trigger
+  experimental: {
+    optimizeCss: false,
+  },
 }
 
 export default nextConfig

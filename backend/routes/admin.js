@@ -1,131 +1,104 @@
 const express = require("express")
-const { body, validationResult } = require("express-validator")
 const User = require("../models/User")
 const Event = require("../models/Event")
 const Registration = require("../models/Registration")
 const Suggestion = require("../models/Suggestion")
 const Feedback = require("../models/Feedback")
-const auth = require("../middleware/auth")
-const mongoose = require("mongoose") // Import mongoose
+const { auth, adminAuth } = require("../middleware/auth")
 
 const router = express.Router()
-
-// Middleware to check admin role
-const adminAuth = (req, res, next) => {
-  if (req.user.role !== "admin" && req.user.role !== "sk_official") {
-    return res.status(403).json({ message: "Access denied. Admin privileges required." })
-  }
-  next()
-}
 
 // Get dashboard statistics
 router.get("/dashboard", auth, adminAuth, async (req, res) => {
   try {
-    const [
-      totalUsers,
-      totalEvents,
-      totalRegistrations,
-      totalSuggestions,
-      totalFeedback,
-      recentUsers,
-      upcomingEvents,
-      pendingSuggestions,
-    ] = await Promise.all([
+    const stats = await Promise.all([
       User.countDocuments({ isActive: true }),
       Event.countDocuments(),
       Registration.countDocuments(),
       Suggestion.countDocuments(),
       Feedback.countDocuments(),
-      User.find({ isActive: true }).sort({ createdAt: -1 }).limit(5).select("firstName lastName email createdAt"),
-      Event.find({ status: "upcoming" })
-        .sort({ date: 1 })
-        .limit(5)
-        .select("title date location currentParticipants maxParticipants"),
-      Suggestion.find({ status: "pending" })
-        .sort({ createdAt: -1 })
-        .limit(5)
-        .populate("author", "firstName lastName")
-        .select("title category createdAt author"),
+      Event.countDocuments({ status: "upcoming" }),
+      Event.countDocuments({ status: "completed" }),
+      Suggestion.countDocuments({ status: "pending" }),
+      Feedback.countDocuments({ status: "open" }),
     ])
 
-    // Get user registration trends (last 30 days)
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    const dashboardStats = {
+      totalUsers: stats[0],
+      totalEvents: stats[1],
+      totalRegistrations: stats[2],
+      totalSuggestions: stats[3],
+      totalFeedback: stats[4],
+      upcomingEvents: stats[5],
+      completedEvents: stats[6],
+      pendingSuggestions: stats[7],
+      openFeedback: stats[8],
+    }
 
-    const userTrends = await User.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: thirtyDaysAgo },
-          isActive: true,
-        },
-      },
-      {
-        $group: {
-          _id: {
-            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
-          },
-          count: { $sum: 1 },
-        },
-      },
-      { $sort: { _id: 1 } },
-    ])
+    // Get recent activities
+    const recentUsers = await User.find({ isActive: true })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select("firstName lastName email createdAt")
 
-    // Get event participation by category
-    const eventsByCategory = await Event.aggregate([
-      {
-        $group: {
-          _id: "$category",
-          count: { $sum: 1 },
-          totalParticipants: { $sum: "$currentParticipants" },
-        },
-      },
-    ])
+    const recentEvents = await Event.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate("organizer", "firstName lastName")
+      .select("title date status organizer createdAt")
+
+    const recentSuggestions = await Suggestion.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate("author", "firstName lastName")
+      .select("title status author createdAt")
 
     res.json({
-      statistics: {
-        totalUsers,
-        totalEvents,
-        totalRegistrations,
-        totalSuggestions,
-        totalFeedback,
+      stats: dashboardStats,
+      recentActivities: {
+        users: recentUsers,
+        events: recentEvents,
+        suggestions: recentSuggestions,
       },
-      recentUsers,
-      upcomingEvents,
-      pendingSuggestions,
-      userTrends,
-      eventsByCategory,
     })
   } catch (error) {
-    console.error("Dashboard error:", error)
-    res.status(500).json({ message: "Server error" })
+    console.error("Get dashboard stats error:", error)
+    res.status(500).json({
+      message: "Failed to fetch dashboard statistics",
+      error: error.message,
+    })
   }
 })
 
-// Get all users with pagination
+// Get all users with filtering
 router.get("/users", auth, adminAuth, async (req, res) => {
   try {
-    const { page = 1, limit = 10, search = "", role = "" } = req.query
-    const query = {}
+    const { page = 1, limit = 10, role, isActive, barangay, municipality, province, search } = req.query
 
+    // Build filter object
+    const filter = {}
+    if (role) filter.role = role
+    if (isActive !== undefined) filter.isActive = isActive === "true"
+    if (barangay) filter.barangay = new RegExp(barangay, "i")
+    if (municipality) filter.municipality = new RegExp(municipality, "i")
+    if (province) filter.province = new RegExp(province, "i")
+
+    // Add search functionality
     if (search) {
-      query.$or = [
-        { firstName: { $regex: search, $options: "i" } },
-        { lastName: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
+      filter.$or = [
+        { firstName: new RegExp(search, "i") },
+        { lastName: new RegExp(search, "i") },
+        { email: new RegExp(search, "i") },
       ]
     }
 
-    if (role) {
-      query.role = role
-    }
-
-    const users = await User.find(query)
+    const users = await User.find(filter)
       .select("-password")
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit)
 
-    const total = await User.countDocuments(query)
+    const total = await User.countDocuments(filter)
 
     res.json({
       users,
@@ -135,191 +108,176 @@ router.get("/users", auth, adminAuth, async (req, res) => {
     })
   } catch (error) {
     console.error("Get users error:", error)
-    res.status(500).json({ message: "Server error" })
+    res.status(500).json({
+      message: "Failed to fetch users",
+      error: error.message,
+    })
   }
 })
 
 // Update user role
-router.put(
-  "/users/:id/role",
-  auth,
-  adminAuth,
-  [body("role").isIn(["youth", "sk_official", "admin"]).withMessage("Valid role is required")],
-  async (req, res) => {
-    try {
-      const errors = validationResult(req)
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() })
-      }
-
-      const { role } = req.body
-
-      const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true }).select("-password")
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found" })
-      }
-
-      res.json({
-        message: "User role updated successfully",
-        user,
-      })
-    } catch (error) {
-      console.error("Update user role error:", error)
-      res.status(500).json({ message: "Server error" })
-    }
-  },
-)
-
-// Toggle user active status
-router.put("/users/:id/status", auth, adminAuth, async (req, res) => {
+router.put("/users/:id/role", auth, adminAuth, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id)
+    const { role } = req.body
+    const validRoles = ["youth", "sk_official", "admin"]
+
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ message: "Invalid role" })
+    }
+
+    const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true, runValidators: true }).select(
+      "-password",
+    )
 
     if (!user) {
       return res.status(404).json({ message: "User not found" })
     }
 
-    user.isActive = !user.isActive
-    await user.save()
-
     res.json({
-      message: `User ${user.isActive ? "activated" : "deactivated"} successfully`,
-      user: user.toJSON(),
+      message: "User role updated successfully",
+      user,
     })
   } catch (error) {
-    console.error("Toggle user status error:", error)
-    res.status(500).json({ message: "Server error" })
+    console.error("Update user role error:", error)
+    res.status(400).json({
+      message: "Failed to update user role",
+      error: error.message,
+    })
   }
 })
 
-// Get all events with detailed info
-router.get("/events", auth, adminAuth, async (req, res) => {
+// Toggle user active status
+router.put("/users/:id/status", auth, adminAuth, async (req, res) => {
   try {
-    const { page = 1, limit = 10, status = "", category = "" } = req.query
-    const query = {}
+    const { isActive } = req.body
 
-    if (status) query.status = status
-    if (category) query.category = category
-
-    const events = await Event.find(query)
-      .populate("organizer", "firstName lastName email")
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit)
-
-    const total = await Event.countDocuments(query)
-
-    // Get registration counts for each event
-    const eventsWithStats = await Promise.all(
-      events.map(async (event) => {
-        const registrationCount = await Registration.countDocuments({ event: event._id })
-        return {
-          ...event.toObject(),
-          registrationCount,
-        }
-      }),
+    const user = await User.findByIdAndUpdate(req.params.id, { isActive }, { new: true, runValidators: true }).select(
+      "-password",
     )
 
+    if (!user) {
+      return res.status(404).json({ message: "User not found" })
+    }
+
     res.json({
-      events: eventsWithStats,
-      totalPages: Math.ceil(total / limit),
-      currentPage: page,
-      total,
+      message: `User ${isActive ? "activated" : "deactivated"} successfully`,
+      user,
     })
   } catch (error) {
-    console.error("Get admin events error:", error)
-    res.status(500).json({ message: "Server error" })
+    console.error("Update user status error:", error)
+    res.status(400).json({
+      message: "Failed to update user status",
+      error: error.message,
+    })
   }
 })
 
-// Get detailed event analytics
-router.get("/events/:id/analytics", auth, adminAuth, async (req, res) => {
+// Get system analytics
+router.get("/analytics", auth, adminAuth, async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id).populate("organizer", "firstName lastName email")
+    const { period = "30" } = req.query // days
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() - Number.parseInt(period))
 
-    if (!event) {
-      return res.status(404).json({ message: "Event not found" })
-    }
-
-    const [registrations, feedback, registrationsByStatus, ageDistribution, barangayDistribution] = await Promise.all([
-      Registration.find({ event: req.params.id }).populate("user", "firstName lastName email age barangay phoneNumber"),
-      Feedback.find({ event: req.params.id }).populate("user", "firstName lastName"),
-      Registration.aggregate([
-        { $match: { event: mongoose.Types.ObjectId(req.params.id) } },
-        { $group: { _id: "$status", count: { $sum: 1 } } },
-      ]),
-      Registration.aggregate([
-        { $match: { event: mongoose.Types.ObjectId(req.params.id) } },
-        {
-          $lookup: {
-            from: "users",
-            localField: "user",
-            foreignField: "_id",
-            as: "userInfo",
-          },
+    // User registration trends
+    const userRegistrations = await User.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startDate },
         },
-        { $unwind: "$userInfo" },
-        {
-          $group: {
-            _id: {
-              $switch: {
-                branches: [
-                  { case: { $lt: ["$userInfo.age", 18] }, then: "15-17" },
-                  { case: { $lt: ["$userInfo.age", 21] }, then: "18-20" },
-                  { case: { $lt: ["$userInfo.age", 25] }, then: "21-24" },
-                  { case: { $gte: ["$userInfo.age", 25] }, then: "25-30" },
-                ],
-                default: "Unknown",
-              },
-            },
-            count: { $sum: 1 },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+            day: { $dayOfMonth: "$createdAt" },
           },
+          count: { $sum: 1 },
         },
-      ]),
-      Registration.aggregate([
-        { $match: { event: mongoose.Types.ObjectId(req.params.id) } },
-        {
-          $lookup: {
-            from: "users",
-            localField: "user",
-            foreignField: "_id",
-            as: "userInfo",
-          },
-        },
-        { $unwind: "$userInfo" },
-        { $group: { _id: "$userInfo.barangay", count: { $sum: 1 } } },
-        { $sort: { count: -1 } },
-      ]),
+      },
+      {
+        $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 },
+      },
     ])
 
-    // Calculate average feedback ratings
-    const avgRatings =
-      feedback.length > 0
-        ? {
-            overall: feedback.reduce((sum, f) => sum + f.rating, 0) / feedback.length,
-            organization: feedback.reduce((sum, f) => sum + (f.categories?.organization || 0), 0) / feedback.length,
-            content: feedback.reduce((sum, f) => sum + (f.categories?.content || 0), 0) / feedback.length,
-            venue: feedback.reduce((sum, f) => sum + (f.categories?.venue || 0), 0) / feedback.length,
-          }
-        : null
+    // Event creation trends
+    const eventCreations = await Event.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startDate },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+            day: { $dayOfMonth: "$createdAt" },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 },
+      },
+    ])
+
+    // Popular event categories
+    const eventCategories = await Event.aggregate([
+      {
+        $group: {
+          _id: "$category",
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { count: -1 },
+      },
+    ])
+
+    // Suggestion status distribution
+    const suggestionStatus = await Suggestion.aggregate([
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+        },
+      },
+    ])
+
+    // User distribution by location
+    const usersByLocation = await User.aggregate([
+      {
+        $group: {
+          _id: {
+            province: "$province",
+            municipality: "$municipality",
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { count: -1 },
+      },
+      {
+        $limit: 10,
+      },
+    ])
 
     res.json({
-      event,
-      registrations,
-      feedback,
-      analytics: {
-        registrationsByStatus,
-        ageDistribution,
-        barangayDistribution,
-        avgRatings,
-        totalRegistrations: registrations.length,
-        totalFeedback: feedback.length,
-      },
+      userRegistrations,
+      eventCreations,
+      eventCategories,
+      suggestionStatus,
+      usersByLocation,
     })
   } catch (error) {
-    console.error("Get event analytics error:", error)
-    res.status(500).json({ message: "Server error" })
+    console.error("Get analytics error:", error)
+    res.status(500).json({
+      message: "Failed to fetch analytics",
+      error: error.message,
+    })
   }
 })
 
@@ -332,56 +290,42 @@ router.get("/export/:type", auth, adminAuth, async (req, res) => {
 
     switch (type) {
       case "users":
-        data = await User.find({ isActive: true }).select("firstName lastName email age barangay role createdAt").lean()
-        filename = "users_export.csv"
+        data = await User.find().select("-password").lean()
+        filename = "users.json"
         break
-
       case "events":
-        data = await Event.find().populate("organizer", "firstName lastName").lean()
-        filename = "events_export.csv"
+        data = await Event.find().populate("organizer", "firstName lastName email").lean()
+        filename = "events.json"
         break
-
       case "registrations":
         data = await Registration.find()
-          .populate("event", "title date")
           .populate("user", "firstName lastName email")
+          .populate("event", "title date location")
           .lean()
-        filename = "registrations_export.csv"
+        filename = "registrations.json"
         break
-
+      case "suggestions":
+        data = await Suggestion.find().populate("author", "firstName lastName email").lean()
+        filename = "suggestions.json"
+        break
+      case "feedback":
+        data = await Feedback.find().populate("author", "firstName lastName email").lean()
+        filename = "feedback.json"
+        break
       default:
         return res.status(400).json({ message: "Invalid export type" })
     }
 
-    // Convert to CSV (simplified - in production, use a proper CSV library)
-    const csv = convertToCSV(data)
-
-    res.setHeader("Content-Type", "text/csv")
+    res.setHeader("Content-Type", "application/json")
     res.setHeader("Content-Disposition", `attachment; filename=${filename}`)
-    res.send(csv)
+    res.json(data)
   } catch (error) {
     console.error("Export data error:", error)
-    res.status(500).json({ message: "Server error" })
+    res.status(500).json({
+      message: "Failed to export data",
+      error: error.message,
+    })
   }
 })
-
-// Helper function to convert data to CSV
-function convertToCSV(data) {
-  if (!data.length) return ""
-
-  const headers = Object.keys(data[0])
-  const csvHeaders = headers.join(",")
-
-  const csvRows = data.map((row) =>
-    headers
-      .map((header) => {
-        const value = row[header]
-        return typeof value === "string" ? `"${value.replace(/"/g, '""')}"` : value
-      })
-      .join(","),
-  )
-
-  return [csvHeaders, ...csvRows].join("\n")
-}
 
 module.exports = router
