@@ -20,10 +20,13 @@ export default function ConnectivityStatus() {
     // Check API connectivity
     const checkApiStatus = async () => {
       try {
-        const response = await fetch('/api/health', {
-          method: 'GET',
-          signal: AbortSignal.timeout(5000) // 5 second timeout
-        })
+        // Use Promise.race for better browser compatibility
+        const fetchPromise = fetch('/api/health', { method: 'GET' })
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('timeout')), 5000)
+        )
+
+        const response = await Promise.race([fetchPromise, timeoutPromise]) as Response
         setApiStatus(response.ok ? 'online' : 'offline')
       } catch {
         setApiStatus('offline')
