@@ -5,7 +5,7 @@ const path = require("path")
 // Load environment variables from the backend directory
 require("dotenv").config({ path: path.join(__dirname, "../backend/.env") })
 
-// User schema (simplified version)
+// User schema (complete version matching your backend)
 const userSchema = new mongoose.Schema(
   {
     firstName: { type: String, required: true },
@@ -43,12 +43,16 @@ const User = mongoose.model("User", userSchema)
 async function createAdminUser() {
   try {
     // Check if MONGODB_URI is available
-    const mongoUri = process.env.MONGODB_URI
+    let mongoUri = process.env.MONGODB_URI
     if (!mongoUri) {
       console.error("MONGODB_URI environment variable is not set!")
       console.log("Please check your .env file in the backend directory")
-      console.log("Expected format: MONGODB_URI=mongodb://localhost:27017/skconnect")
       return
+    }
+
+    // Add database name if not present
+    if (!mongoUri.includes("mongodb.net/") || mongoUri.includes("mongodb.net/?")) {
+      mongoUri = mongoUri.replace("mongodb.net/?", "mongodb.net/skconnect?")
     }
 
     console.log("Connecting to MongoDB...")
@@ -65,6 +69,13 @@ async function createAdminUser() {
       console.log("📧 Email: admin@skconnect.com")
       console.log("🔑 Use your existing password or reset it")
       console.log("👤 Role:", existingAdmin.role)
+
+      // Update role to admin if it's not already
+      if (existingAdmin.role !== "admin") {
+        existingAdmin.role = "admin"
+        await existingAdmin.save()
+        console.log("✅ User role updated to admin!")
+      }
       return
     }
 
