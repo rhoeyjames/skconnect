@@ -184,9 +184,9 @@ export default function DynamicStats() {
             )
           })}
         </div>
-        {stats && (
+        {!isLoading && (
           <div className="mt-8 text-center text-sm text-gray-500">
-            <p>Live data updated from your MongoDB Atlas database</p>
+            <p>Data from your MongoDB Atlas database</p>
             {stats.eventsThisMonth > 0 && (
               <p className="mt-1">📅 {stats.eventsThisMonth} events created this month</p>
             )}
