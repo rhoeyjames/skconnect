@@ -123,7 +123,27 @@ export default function RegisterForm() {
       }
     } catch (error: any) {
       console.error('Registration error:', error)
-      setError(error.message || "Registration failed. Please check your information and try again.")
+
+      // Extract specific error message from API response
+      let errorMessage = "Registration failed. Please check your information and try again."
+
+      if (error.message) {
+        if (error.message.includes("User already exists")) {
+          errorMessage = "An account with this email address already exists. Please use a different email or try logging in instead."
+        } else if (error.message.includes("validation failed") || error.message.includes("Validation")) {
+          errorMessage = "Please check that all fields are filled correctly and try again."
+        } else if (error.message.includes("phone")) {
+          errorMessage = "Please enter a valid Philippine phone number (e.g., 09123456789)."
+        } else if (error.message.includes("email")) {
+          errorMessage = "Please enter a valid email address."
+        } else if (error.message.includes("password")) {
+          errorMessage = "Password must be at least 6 characters long."
+        } else {
+          errorMessage = error.message
+        }
+      }
+
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }
