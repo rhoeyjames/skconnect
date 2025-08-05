@@ -27,10 +27,22 @@ export default function DynamicStats() {
         setIsLoading(true)
         setError(null)
 
+        // First, test connectivity with a simple health check
+        if (retryCount === 0) {
+          try {
+            const healthResponse = await fetch('/api/health')
+            if (!healthResponse.ok) {
+              throw new Error('Backend not available')
+            }
+          } catch {
+            throw new Error('Cannot connect to backend - please check your connection')
+          }
+        }
+
         // Use Promise.race for timeout with longer timeout for cloud environment
         const fetchPromise = fetch('/api/dashboard/stats')
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Request timeout - API took too long to respond')), 15000)
+          setTimeout(() => reject(new Error('Dashboard API timeout - taking longer than expected')), 20000)
         )
 
         const response = await Promise.race([fetchPromise, timeoutPromise]) as Response
@@ -43,14 +55,14 @@ export default function DynamicStats() {
       } catch (err: any) {
         console.error('Error fetching stats:', err)
 
-        // Only retry once for network errors, not for timeouts
-        if (retryCount < 1 && err.message.includes('fetch') && !err.message.includes('timeout')) {
+        // Retry logic - try once more for any error except timeouts
+        if (retryCount < 1 && !err.message.toLowerCase().includes('timeout')) {
           console.log(`Retrying stats fetch... (attempt ${retryCount + 1})`)
-          setTimeout(() => fetchStats(retryCount + 1), 3000)
+          setTimeout(() => fetchStats(retryCount + 1), 2000)
           return
         }
 
-        setError('Showing fallback data - API temporarily unavailable')
+        setError('API response delayed - showing placeholder data')
         // Fallback to sample data to show something useful
         setStats({
           totalUsers: 0,
