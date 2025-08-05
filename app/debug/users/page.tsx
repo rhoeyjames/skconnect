@@ -75,6 +75,20 @@ export default function DebugUsersPage() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="flex">
+              <Shield className="h-5 w-5 text-red-400" />
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">
+                  ⚠️ DEVELOPMENT ONLY - SECURITY WARNING
+                </h3>
+                <div className="mt-2 text-sm text-red-700">
+                  <p>This debug page exposes user information and should ONLY be used during development.
+                  Remove this page in production environments.</p>
+                </div>
+              </div>
+            </div>
+          </div>
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Debug: Registered Users</h1>
