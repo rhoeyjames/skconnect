@@ -12,8 +12,14 @@ const app = express()
 // Middleware
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: [
+      process.env.FRONTEND_URL || "http://localhost:3000",
+      "https://e2f5845bd12a4ed3bcf48b685abe9a17-5bfdffcfac0d4123bb0d065ae.fly.dev",
+      /.*\.fly\.dev$/
+    ],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   }),
 )
 app.use(express.json({ limit: "10mb" }))
