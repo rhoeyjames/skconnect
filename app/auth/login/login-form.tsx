@@ -109,7 +109,7 @@ export default function LoginForm() {
         <Card>
           <CardHeader>
             <CardTitle>Welcome Back</CardTitle>
-            <CardDescription>Enter your credentials to access your account</CardDescription>
+            <CardDescription>Enter your credentials and select your role to access your account</CardDescription>
           </CardHeader>
           <CardContent>
             {error && (
