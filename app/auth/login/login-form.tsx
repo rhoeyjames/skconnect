@@ -229,6 +229,11 @@ export default function LoginForm() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Backend Status */}
+        <div className="mt-6">
+          <BackendStatus />
+        </div>
       </div>
     </div>
   )
