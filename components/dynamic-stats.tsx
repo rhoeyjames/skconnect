@@ -50,15 +50,15 @@ export default function DynamicStats() {
           return
         }
 
-        setError('Unable to load live statistics')
-        // Fallback to empty state
+        setError('Showing fallback data - API temporarily unavailable')
+        // Fallback to sample data to show something useful
         setStats({
           totalUsers: 0,
           totalEvents: 0,
           totalCommunities: 0,
           completedEvents: 0,
           eventsThisMonth: 0,
-          usersByRole: {}
+          usersByRole: { youth: 0, sk_official: 0, admin: 0 }
         })
       } finally {
         setIsLoading(false)
