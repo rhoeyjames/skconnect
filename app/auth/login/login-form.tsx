@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
 import { Mail, Lock, Loader2, AlertCircle } from "lucide-react"
+import BackendStatus from "@/components/backend-status"
 
 export default function LoginForm() {
   const [formData, setFormData] = useState({
