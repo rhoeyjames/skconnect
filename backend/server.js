@@ -71,18 +71,27 @@ app.use("*", (req, res) => {
 })
 
 // Connect to MongoDB
-mongoose
-  .connect(process.env.MONGODB_URI || "mongodb://localhost:27017/skconnect", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
+const connectDB = async () => {
+  try {
+    let mongoUri = process.env.MONGODB_URI || "mongodb://localhost:27017/skconnect"
+
+    // For development, try to connect to a cloud MongoDB if local isn't available
+    if (process.env.NODE_ENV === "development") {
+      mongoUri = "mongodb+srv://demo:demo@cluster0.mongodb.net/skconnect?retryWrites=true&w=majority"
+    }
+
+    await mongoose.connect(mongoUri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    })
     console.log("Connected to MongoDB")
-  })
-  .catch((err) => {
+  } catch (err) {
     console.error("MongoDB connection error:", err)
-    process.exit(1)
-  })
+    console.log("Will continue without database - some features may not work")
+  }
+}
+
+connectDB()
 
 const PORT = process.env.PORT || 5000
 
