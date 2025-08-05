@@ -27,74 +27,48 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" })
     }
 
-    try {
-      // Check if user already exists
-      const existingUser = await User.findOne({ email })
-      if (existingUser) {
-        return res.status(400).json({ message: "User already exists with this email" })
-      }
-
-      // Create new user
-      const user = new User({
-        firstName,
-        lastName,
-        email,
-        password,
-        age,
-        barangay,
-        municipality,
-        province,
-        phoneNumber,
-        dateOfBirth,
-        interests: interests || [],
-      })
-
-      await user.save()
-
-      // Generate JWT token
-      const token = jwt.sign({ userId: user._id, email: user.email, role: user.role }, process.env.JWT_SECRET, {
-        expiresIn: "7d",
-      })
-
-      res.status(201).json({
-        message: "User registered successfully",
-        token,
-        user: {
-          id: user._id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          role: user.role,
-          barangay: user.barangay,
-          municipality: user.municipality,
-          province: user.province,
-        },
-      })
-    } catch (dbError) {
-      console.error("Database error, using fallback:", dbError)
-
-      // Fallback for development without MongoDB
-      const mockUser = {
-        _id: "mock_" + Date.now(),
-        firstName,
-        lastName,
-        email,
-        role: "youth",
-        barangay,
-        municipality,
-        province,
-      }
-
-      const token = jwt.sign({ userId: mockUser._id, email: mockUser.email, role: mockUser.role }, process.env.JWT_SECRET, {
-        expiresIn: "7d",
-      })
-
-      res.status(201).json({
-        message: "User registered successfully (demo mode)",
-        token,
-        user: mockUser,
-      })
+    // Check if user already exists
+    const existingUser = await User.findOne({ email })
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists with this email" })
     }
+
+    // Create new user
+    const user = new User({
+      firstName,
+      lastName,
+      email,
+      password,
+      age,
+      barangay,
+      municipality,
+      province,
+      phoneNumber,
+      dateOfBirth,
+      interests: interests || [],
+    })
+
+    await user.save()
+
+    // Generate JWT token
+    const token = jwt.sign({ userId: user._id, email: user.email, role: user.role }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    })
+
+    res.status(201).json({
+      message: "User registered successfully",
+      token,
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        barangay: user.barangay,
+        municipality: user.municipality,
+        province: user.province,
+      },
+    })
   } catch (error) {
     console.error("Registration error:", error)
     res.status(400).json({
