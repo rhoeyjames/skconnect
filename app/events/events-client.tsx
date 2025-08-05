@@ -106,6 +106,40 @@ export default function EventsClient() {
     },
   ]
 
+  // Fetch events from backend
+  const fetchEvents = async () => {
+    try {
+      setLoading(true)
+      setError("")
+
+      const params = {
+        page: currentPage,
+        limit: 10,
+        ...(filterType !== "all" && { category: filterType }),
+        ...(filterStatus !== "all" && { status: filterStatus }),
+        ...(searchTerm && { search: searchTerm }),
+        sortBy: "date",
+        sortOrder: "asc",
+      }
+
+      const data = await apiClient.getEvents(params)
+      setEvents(data.events || [])
+      setTotalPages(data.totalPages || 1)
+    } catch (error: any) {
+      console.error("Failed to fetch events:", error)
+      setError("Failed to load events. Using sample data.")
+      // Use mock data as fallback
+      setEvents(mockEvents)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Fetch events on component mount and when filters change
+  useEffect(() => {
+    fetchEvents()
+  }, [currentPage, filterType, filterStatus, searchTerm])
+
   const getEventTypeColor = (type: string) => {
     const colors = {
       workshop: "bg-blue-100 text-blue-800",
