@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import AdminDashboard from "./admin-dashboard"
+import BackendStatus from "@/components/backend-status"
 
 interface User {
   id: string
