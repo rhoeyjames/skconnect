@@ -42,14 +42,13 @@ export default function DynamicEvents({ userRole }: DynamicEventsProps) {
         setIsLoading(true)
         setError(null)
 
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+        // Use Promise.race for timeout instead of AbortController
+        const fetchPromise = fetch('/api/events?limit=6&status=active')
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Request timeout')), 8000)
+        )
 
-        const response = await fetch('/api/events?limit=6&status=active', {
-          signal: controller.signal
-        })
-
-        clearTimeout(timeoutId)
+        const response = await Promise.race([fetchPromise, timeoutPromise]) as Response
 
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: Failed to fetch events`)
@@ -59,10 +58,10 @@ export default function DynamicEvents({ userRole }: DynamicEventsProps) {
       } catch (err: any) {
         console.error('Error fetching events:', err)
 
-        // Retry logic for network errors
-        if (retryCount < 2 && (err.name === 'AbortError' || err.message.includes('fetch'))) {
+        // Retry logic for network errors (but not for timeouts on first attempt)
+        if (retryCount < 1 && (err.message.includes('fetch') || err.message.includes('timeout'))) {
           console.log(`Retrying events fetch... (attempt ${retryCount + 1})`)
-          setTimeout(() => fetchEvents(retryCount + 1), 1000 * (retryCount + 1))
+          setTimeout(() => fetchEvents(retryCount + 1), 2000)
           return
         }
 
