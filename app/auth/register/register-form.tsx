@@ -123,12 +123,16 @@ export default function RegisterForm() {
       }
     } catch (error: any) {
       console.error('Registration error:', error)
+      console.error('Error message:', error.message)
+      console.error('Error data:', error.data)
 
       // Extract specific error message from API response
       let errorMessage = "Registration failed. Please check your information and try again."
 
       if (error.message) {
-        if (error.message.includes("User already exists")) {
+        console.log('Processing error message:', error.message)
+
+        if (error.message.includes("User already exists") || error.message.includes("already exists")) {
           errorMessage = "An account with this email address already exists. Please use a different email or try logging in instead."
         } else if (error.message.includes("validation failed") || error.message.includes("Validation")) {
           errorMessage = "Please check that all fields are filled correctly and try again."
@@ -143,6 +147,7 @@ export default function RegisterForm() {
         }
       }
 
+      console.log('Final error message:', errorMessage)
       setError(errorMessage)
     } finally {
       setIsLoading(false)
