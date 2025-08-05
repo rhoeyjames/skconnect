@@ -1,6 +1,9 @@
 const mongoose = require("mongoose")
 const bcrypt = require("bcryptjs")
-require("dotenv").config()
+const path = require("path")
+
+// Load environment variables from the backend directory
+require("dotenv").config({ path: path.join(__dirname, "../backend/.env") })
 
 // User schema (simplified version)
 const userSchema = new mongoose.Schema(
@@ -39,20 +42,34 @@ const User = mongoose.model("User", userSchema)
 
 async function createAdminUser() {
   try {
+    // Check if MONGODB_URI is available
+    const mongoUri = process.env.MONGODB_URI
+    if (!mongoUri) {
+      console.error("MONGODB_URI environment variable is not set!")
+      console.log("Please check your .env file in the backend directory")
+      console.log("Expected format: MONGODB_URI=mongodb://localhost:27017/skconnect")
+      return
+    }
+
+    console.log("Connecting to MongoDB...")
+    console.log("URI:", mongoUri.replace(/\/\/.*@/, "//***:***@")) // Hide credentials in log
+
     // Connect to MongoDB
-    await mongoose.connect(process.env.MONGODB_URI)
-    console.log("Connected to MongoDB")
+    await mongoose.connect(mongoUri)
+    console.log("Connected to MongoDB successfully!")
 
     // Check if admin already exists
     const existingAdmin = await User.findOne({ email: "admin@skconnect.com" })
     if (existingAdmin) {
-      console.log("Admin user already exists!")
-      console.log("Email: admin@skconnect.com")
-      console.log("You can update the password if needed.")
+      console.log("✅ Admin user already exists!")
+      console.log("📧 Email: admin@skconnect.com")
+      console.log("🔑 Use your existing password or reset it")
+      console.log("👤 Role:", existingAdmin.role)
       return
     }
 
     // Create admin user
+    console.log("Creating admin user...")
     const adminUser = new User({
       firstName: "Admin",
       lastName: "User",
@@ -70,14 +87,19 @@ async function createAdminUser() {
     })
 
     await adminUser.save()
-    console.log("Admin user created successfully!")
-    console.log("Login credentials:")
-    console.log("Email: admin@skconnect.com")
-    console.log("Password: admin123456")
+    console.log("🎉 Admin user created successfully!")
     console.log("")
-    console.log("Please change the password after first login!")
+    console.log("📋 Login credentials:")
+    console.log("📧 Email: admin@skconnect.com")
+    console.log("🔑 Password: admin123456")
+    console.log("")
+    console.log("⚠️  IMPORTANT: Please change the password after first login!")
+    console.log("🌐 Access admin dashboard at: /admin")
   } catch (error) {
-    console.error("Error creating admin user:", error)
+    console.error("❌ Error creating admin user:", error.message)
+    if (error.code === 11000) {
+      console.log("User with this email already exists!")
+    }
   } finally {
     await mongoose.disconnect()
     console.log("Disconnected from MongoDB")
