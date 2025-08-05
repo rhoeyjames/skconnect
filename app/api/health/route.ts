@@ -1,26 +1,27 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
-const BACKEND_URL = 'http://localhost:5000'
+const BACKEND_URL = 'http://localhost:5001'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/health`)
-    const data = await response.json()
-    
-    return NextResponse.json({
-      ...data,
-      proxy: 'Next.js API Route',
-      backend: response.ok ? 'connected' : 'disconnected'
-    })
-  } catch (error) {
-    return NextResponse.json(
-      { 
-        status: 'ERROR',
-        message: 'Backend connection failed',
-        proxy: 'Next.js API Route',
-        backend: 'disconnected',
-        error: error instanceof Error ? error.message : 'Unknown error'
+    const response = await fetch(`${BACKEND_URL}/api/health`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
       },
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      return NextResponse.json(data, { status: response.status })
+    }
+
+    return NextResponse.json(data)
+  } catch (error) {
+    console.error('Health check proxy error:', error)
+    return NextResponse.json(
+      { message: 'Backend not available', status: 'ERROR' },
       { status: 503 }
     )
   }
