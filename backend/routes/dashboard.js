@@ -51,7 +51,9 @@ router.get("/stats", async (req, res) => {
         .select('title category status startDate endDate')
         .lean() // Use lean() for better performance
     ])
-    
+
+    const totalCommunities = uniqueLocations.length
+
     res.json({
       message: "Dashboard statistics retrieved successfully",
       stats: {
