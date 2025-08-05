@@ -58,10 +58,10 @@ export default function DynamicEvents({ userRole }: DynamicEventsProps) {
       } catch (err: any) {
         console.error('Error fetching events:', err)
 
-        // Retry logic for network errors (but not for timeouts on first attempt)
-        if (retryCount < 1 && (err.message.includes('fetch') || err.message.includes('timeout'))) {
+        // Only retry once for network errors, not for timeouts
+        if (retryCount < 1 && err.message.includes('fetch') && !err.message.includes('timeout')) {
           console.log(`Retrying events fetch... (attempt ${retryCount + 1})`)
-          setTimeout(() => fetchEvents(retryCount + 1), 2000)
+          setTimeout(() => fetchEvents(retryCount + 1), 3000)
           return
         }
 
