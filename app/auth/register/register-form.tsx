@@ -193,11 +193,7 @@ export default function RegisterForm() {
                             </Link>
                           </li>
                           <li>Use a different email address</li>
-                          <li>
-                            <Link href="/debug/users" className="text-blue-600 hover:text-blue-500 underline">
-                              Check existing accounts
-                            </Link>
-                          </li>
+                          <li>Contact support if you forgot your login details</li>
                         </ul>
                       </div>
                     )}
