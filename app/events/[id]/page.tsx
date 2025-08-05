@@ -1,20 +1,19 @@
-"use client"
-
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { useToast } from "@/hooks/use-toast"
-import { Calendar, Users, MapPin, ArrowLeft, UserPlus, Share2 } from "lucide-react"
+import { Calendar, Users, MapPin, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { useParams } from "next/navigation"
+import EventDetailClient from "./event-detail-client"
 
-export default function EventDetailPage() {
-  const params = useParams()
+interface EventDetailPageProps {
+  params: {
+    id: string
+  }
+}
+
+export default function EventDetailPage({ params }: EventDetailPageProps) {
   const eventId = params.id
-  const [isRegistering, setIsRegistering] = useState(false)
-  const { toast } = useToast()
 
   // Mock event data - in real app, fetch based on eventId
   const event = {
@@ -62,44 +61,6 @@ export default function EventDetailPage() {
     return colors[type as keyof typeof colors] || "bg-gray-100 text-gray-800"
   }
 
-  const handleRegister = async () => {
-    setIsRegistering(true)
-
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      toast({
-        title: "Registration Successful!",
-        description: "You have been registered for this event. Check your email for confirmation.",
-      })
-    } catch (error) {
-      toast({
-        title: "Registration Failed",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsRegistering(false)
-    }
-  }
-
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: event.title,
-        text: event.description,
-        url: window.location.href,
-      })
-    } else {
-      navigator.clipboard.writeText(window.location.href)
-      toast({
-        title: "Link Copied!",
-        description: "Event link has been copied to your clipboard.",
-      })
-    }
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
       <div className="max-w-4xl mx-auto">
@@ -124,11 +85,7 @@ export default function EventDetailPage() {
               <Badge className={getEventTypeColor(event.type)}>{event.type.replace("-", " ")}</Badge>
               <Badge className="bg-green-100 text-green-800">{event.status}</Badge>
             </div>
-            <div className="absolute top-4 right-4">
-              <Button variant="secondary" size="sm" onClick={handleShare}>
-                <Share2 className="w-4 h-4" />
-              </Button>
-            </div>
+            <EventDetailClient event={event} />
           </div>
           <CardHeader>
             <CardTitle className="text-2xl md:text-3xl">{event.title}</CardTitle>
@@ -235,18 +192,7 @@ export default function EventDetailPage() {
                 <p className="text-sm text-gray-600 mb-4">
                   {Math.round((event.participants / event.maxParticipants) * 100)}% full
                 </p>
-                <Button
-                  className="w-full"
-                  onClick={handleRegister}
-                  disabled={isRegistering || event.participants >= event.maxParticipants}
-                >
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  {isRegistering
-                    ? "Registering..."
-                    : event.participants >= event.maxParticipants
-                      ? "Event Full"
-                      : "Register Now"}
-                </Button>
+                <EventDetailClient event={event} showRegistration />
                 <p className="text-xs text-gray-500 mt-2 text-center">Registration is free for all youth members</p>
               </CardContent>
             </Card>
