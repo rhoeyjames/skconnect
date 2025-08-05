@@ -27,10 +27,10 @@ export default function DynamicStats() {
         setIsLoading(true)
         setError(null)
 
-        // Use Promise.race for timeout instead of AbortController
+        // Use Promise.race for timeout with longer timeout for cloud environment
         const fetchPromise = fetch('/api/dashboard/stats')
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Request timeout')), 8000)
+          setTimeout(() => reject(new Error('Request timeout - API took too long to respond')), 15000)
         )
 
         const response = await Promise.race([fetchPromise, timeoutPromise]) as Response
