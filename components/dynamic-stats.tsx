@@ -27,14 +27,13 @@ export default function DynamicStats() {
         setIsLoading(true)
         setError(null)
 
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+        // Use Promise.race for timeout instead of AbortController
+        const fetchPromise = fetch('/api/dashboard/stats')
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Request timeout')), 8000)
+        )
 
-        const response = await fetch('/api/dashboard/stats', {
-          signal: controller.signal
-        })
-
-        clearTimeout(timeoutId)
+        const response = await Promise.race([fetchPromise, timeoutPromise]) as Response
 
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: Failed to fetch statistics`)
@@ -44,10 +43,10 @@ export default function DynamicStats() {
       } catch (err: any) {
         console.error('Error fetching stats:', err)
 
-        // Retry logic for network errors
-        if (retryCount < 2 && (err.name === 'AbortError' || err.message.includes('fetch'))) {
+        // Retry logic for network errors (but not for timeouts on first attempt)
+        if (retryCount < 1 && (err.message.includes('fetch') || err.message.includes('timeout'))) {
           console.log(`Retrying stats fetch... (attempt ${retryCount + 1})`)
-          setTimeout(() => fetchStats(retryCount + 1), 1000 * (retryCount + 1))
+          setTimeout(() => fetchStats(retryCount + 1), 2000)
           return
         }
 
