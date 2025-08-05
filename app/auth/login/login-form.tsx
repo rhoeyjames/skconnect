@@ -31,6 +31,14 @@ export default function LoginForm() {
     setError("") // Clear error when user types
   }
 
+  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFormData((prev) => ({
+      ...prev,
+      role: e.target.value,
+    }))
+    setError("") // Clear error when role changes
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -49,6 +57,13 @@ export default function LoginForm() {
 
       const data = await apiClient.login(formData.email, formData.password)
 
+      // Validate that the user's actual role matches the selected role
+      if (data.user.role !== formData.role) {
+        setError(`This account is registered as ${data.user.role === 'admin' ? 'Administrator' : data.user.role === 'sk_official' ? 'SK Official' : 'Youth Member'}. Please select the correct role.`)
+        setIsLoading(false)
+        return
+      }
+
       // Store auth data
       localStorage.setItem("token", data.token)
       localStorage.setItem("user", JSON.stringify(data.user))
@@ -61,8 +76,10 @@ export default function LoginForm() {
       // Redirect based on user role
       if (data.user.role === "admin") {
         router.push("/admin")
+      } else if (data.user.role === "sk_official") {
+        router.push("/events") // SK Officials go to events page
       } else {
-        router.push("/events") // Default page for users
+        router.push("/events") // Youth members go to events page
       }
     } catch (error: any) {
       console.error('Login error:', error)
