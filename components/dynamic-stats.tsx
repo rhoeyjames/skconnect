@@ -22,18 +22,37 @@ export default function DynamicStats() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchStats = async (retryCount = 0) => {
       try {
-        const response = await fetch('/api/dashboard/stats')
+        setIsLoading(true)
+        setError(null)
+
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
+        const response = await fetch('/api/dashboard/stats', {
+          signal: controller.signal
+        })
+
+        clearTimeout(timeoutId)
+
         if (!response.ok) {
-          throw new Error('Failed to fetch statistics')
+          throw new Error(`HTTP ${response.status}: Failed to fetch statistics`)
         }
         const data = await response.json()
         setStats(data.stats)
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error fetching stats:', err)
-        setError('Failed to load statistics')
-        // Fallback to static data
+
+        // Retry logic for network errors
+        if (retryCount < 2 && (err.name === 'AbortError' || err.message.includes('fetch'))) {
+          console.log(`Retrying stats fetch... (attempt ${retryCount + 1})`)
+          setTimeout(() => fetchStats(retryCount + 1), 1000 * (retryCount + 1))
+          return
+        }
+
+        setError('Unable to load live statistics')
+        // Fallback to empty state
         setStats({
           totalUsers: 0,
           totalEvents: 0,
