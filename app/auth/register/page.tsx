@@ -29,14 +29,6 @@ export default function RegisterPage() {
           </CardHeader>
           <CardContent>
             <RegisterForm />
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
-                Already have an account?{" "}
-                <Link href="/auth/login" className="text-blue-600 hover:underline">
-                  Sign in here
-                </Link>
-              </p>
-            </div>
           </CardContent>
         </Card>
       </div>

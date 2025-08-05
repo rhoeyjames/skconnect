@@ -58,7 +58,8 @@ export default function LoginForm() {
           description: "You have been successfully logged in.",
         })
 
-        router.push("/admin")
+        // Force page refresh to update navbar
+        window.location.href = "/admin"
         return
       }
 
@@ -82,7 +83,8 @@ export default function LoginForm() {
           description: "You have been successfully logged in.",
         })
 
-        router.push("/")
+        // Force page refresh to update navbar
+        window.location.href = "/"
         return
       }
 

@@ -90,8 +90,8 @@ export default function RegisterForm() {
         description: "Welcome to SKConnect! You are now logged in.",
       })
 
-      // Redirect to home page
-      router.push("/")
+      // Force page refresh to update navbar and redirect to home
+      window.location.href = "/"
     } catch (error) {
       setError("Registration failed. Please try again.")
     } finally {
