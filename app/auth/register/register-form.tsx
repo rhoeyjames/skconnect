@@ -112,19 +112,19 @@ export default function RegisterForm() {
         body: JSON.stringify(registrationData),
       })
 
+      const data = await response.json()
+      console.log('Direct API - Response data:', data)
+
       if (!response.ok) {
-        const errorData = await response.json()
-        console.log('Direct API - Error response:', errorData)
+        console.log('Direct API - Error response:', data)
 
         // Handle specific error cases
-        if (errorData.message) {
-          throw new Error(errorData.message)
+        if (data.message) {
+          throw new Error(data.message)
         } else {
           throw new Error(`Registration failed (${response.status})`)
         }
       }
-
-      const data = await response.json()
 
       // Store auth data
       localStorage.setItem("token", data.token)
